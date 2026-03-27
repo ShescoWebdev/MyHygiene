@@ -5,9 +5,8 @@ import Home from "../pages/Home"
 import About from "../pages/About"
 import Contact from "../pages/Contact"
 import Services from "../pages/Services"
-import ScrollToTop from "../components/layout/scrollToTop"
 import Gallery from "../pages/Gallery"
-
+import ScrollToTop from "../components/layout/scrollToTop"
 function AppRouter() {
   return (
     <BrowserRouter>
