@@ -76,7 +76,7 @@ function Navbar() {
     </div>
 
     <button
-      className="px-6 py-3 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 cursor-pointer"
+      className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-          transparent hover:text-blue-500 cursor-pointer"
       onClick={() => setOpen(false)}
     >
       Book Now

@@ -68,3 +68,8 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+button{
+  border-radius:20px;
+}

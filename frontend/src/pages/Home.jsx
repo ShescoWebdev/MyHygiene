@@ -183,7 +183,7 @@ useEffect(() => {
         </div>
 
           <div className='mb-20'>
-            <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
+            <button className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
             Book Now
           </button>
           </div>
