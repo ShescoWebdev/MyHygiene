@@ -6,7 +6,7 @@ import About from "../pages/About"
 import Contact from "../pages/Contact"
 import Services from "../pages/Services"
 import Gallery from "../pages/Gallery"
-import ScrollToTop from "../components/layout/ScrollToTop";
+import ScrollToTop from "../components/layout/ScrollToTop"
 
 function AppRouter() {
   return (
