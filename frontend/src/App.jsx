@@ -1,4 +1,4 @@
-import AppRouter from "./router/AppRouter"
+import AppRouter from './AppRouter.jsx'
 
 function App() {
   return (
@@ -7,5 +7,3 @@ function App() {
     </>
   )
 }
-
-export default App
