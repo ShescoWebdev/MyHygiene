@@ -6,7 +6,8 @@ import About from "../pages/About"
 import Contact from "../pages/Contact"
 import Services from "../pages/Services"
 import Gallery from "../pages/Gallery"
-import ScrollToTop from "../components/layout/ScrollToTop.jsx"
+import ScrollToTop from "../components/layout/ScrollToTop";
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -25,4 +26,7 @@ function AppRouter() {
 }
 
 export default AppRouter
+
+
+
 
