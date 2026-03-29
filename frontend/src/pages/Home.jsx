@@ -63,7 +63,7 @@ useEffect(() => {
 
       <div className='home2 text-black p-10 pb-20 md:pb-0 flex flex-col gap-5 justify-between items-center md:flex-row md:h-[calc(100vh-64px)]'>
         <div>
-          <h1 className='text-xl md:text-4xl font-[410]'>
+          <h1 className='text-2xl md:text-4xl font-[410]'>
             <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
             We provide -</h1> <br /> 
             <p className='text-xl md:text-2xl leading-relaxed'>professional cleaning, <br /> laundry, & hygiene solutions <br /> to keep your home & workplace spotless, fresh, & healthy.</p><br /><br />
