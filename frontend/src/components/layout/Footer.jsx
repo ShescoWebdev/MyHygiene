@@ -9,8 +9,11 @@ import {
   FaWhatsapp
 } from "react-icons/fa"
 import { NavLink } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 function Footer() {
+  const navigate = useNavigate();
+
   return (
     <footer className="bg-gray-900 text-white px-6 py-10">
 
@@ -52,6 +55,8 @@ function Footer() {
       <NavLink to="/about" className="text-gray-400 hover:text-yellow-400 transition">About Us</NavLink>
       <NavLink to="/services" className="text-gray-400 hover:text-yellow-400 transition">Services</NavLink>
       <NavLink to="/contact" className="text-gray-400 hover:text-yellow-400 transition">Contact Us</NavLink>
+      <NavLink to="/gallery" className="text-gray-400 hover:text-yellow-400 transition">Gallery</NavLink>
+      <NavLink to="/booking" className="text-gray-400 hover:text-yellow-400 transition">Book Now</NavLink>
     </div>
 
 

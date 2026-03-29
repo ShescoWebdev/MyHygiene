@@ -70,6 +70,10 @@ function Services() {
           <li>Cleaning tools</li>
         </ul>
 
+        <p className='text-sm text-gray-500 mt-4'>
+          *All products are available for purchase at competitive prices. Contact us for more details via WhatsApp. Chat with us directly to place your order or inquire about our services.  
+        </p>
+
         {/* BUTTON */}
         <div className='mt-6'>
           <a

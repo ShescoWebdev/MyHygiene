@@ -1,7 +1,10 @@
 import { Phone, Mail } from "lucide-react"
 import { FaWhatsapp, FaBroom, FaHome, FaBuilding, FaPumpSoap } from "react-icons/fa"
+import { useNavigate } from "react-router-dom"
 
 function Contact() {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
 
@@ -62,35 +65,6 @@ function Contact() {
 
       </div>
 
-      {/* PHONE INPUT SECTION
-      <div className="mt-16 bg-white p-6 md:p-10 rounded-2xl shadow-md max-w-3xl mx-auto text-center">
-
-        <h2 className="text-xl md:text-2xl font-semibold mb-4">
-          Prefer we call you?
-        </h2>
-
-        <p className="text-gray-500 mb-6">
-          Drop your number and we’ll reach out to you shortly.
-        </p>
-
-        <div className="flex flex-col md:flex-row gap-3">
-
-          <input
-            type="tel"
-            placeholder="Enter your phone number..."
-            className="flex-1 px-4 py-3 rounded-full border focus:outline-none focus:ring-2 focus:ring-[#f0b000]"
-          />
-
-          <a
-            href="https://wa.me/2348145364748"
-            className="px-6 py-3 bg-[#f0b000] text-black rounded-full hover:bg-transparent hover:text-[#f0b000] border-2 border-[#f0b000] hover:scale-105 transition"
-          >
-            Request Call
-          </a> 
-
-        </div>
-
-      </div>*/}
 
       <div className="mt-16 text-center bg-white p-8 md:p-12 rounded-2xl shadow-md max-w-3xl mx-auto">
 
@@ -99,7 +73,7 @@ function Contact() {
   </p>
 
   <a
-    href="/booking"   // 👈 will connect later when you build booking page
+    href="/booking" onClick={() => navigate("/booking")} 
     className="block w-full md:w-auto px-10 py-4 bg-[#f0b000] text-black text-lg font-semibold 
                rounded-full border-2 border-[#f0b000] transition duration-300 
                hover:bg-transparent hover:text-[#f0b000] hover:scale-105"
@@ -112,7 +86,6 @@ function Contact() {
     </div>
   )
 }
-
 
 function ServiceCard({ icon, title }) {
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { NavLink } from "react-router-dom"
 import { Menu, X } from "lucide-react"
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const [open, setOpen] = useState(false)
@@ -14,6 +15,8 @@ function Navbar() {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto"
   }, [open])
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -44,9 +47,12 @@ function Navbar() {
 
 
         <div className="hidden md:block">
-          <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
-            Book Now
-          </button>
+          <button
+        onClick={() => navigate("/booking")}
+        className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+      >
+        Book Now
+      </button>
 </div>
       </nav>
 
@@ -76,8 +82,11 @@ function Navbar() {
     </div>
 
     <button
-      className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-          transparent hover:text-blue-500 cursor-pointer"
-      onClick={() => setOpen(false)}
+      onClick={() => {
+        navigate("/booking");
+        setOpen(false);
+      }}
+      className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 hover:bg-transparent hover:text-blue-500 transition duration-300 cursor-pointer"
     >
       Book Now
     </button>

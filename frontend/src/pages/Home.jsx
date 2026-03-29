@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import Testimonials from '../components/layout/Testimonials'
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+
+  const navigate = useNavigate();
+
   const images = [
   "/photos/Home2.jpg",
   "/photos/Home3.jpg",
@@ -37,11 +41,13 @@ useEffect(() => {
 
   return () => clearInterval(interval)
 }, [])
+
+
   return (
     <div className='home'>
         <div className="home1">
           <video autoPlay loop muted playsInline className="video-bg">
-        <source src="/videos/Home-video.mp4" type="video/mp4" />
+        <source src="/videos/vid1.mp4" type="video/mp4" />
         </video>
 
          <div className="video-overlay"></div>
@@ -61,9 +67,12 @@ useEffect(() => {
             <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
             We provide -</h1> <br /> 
             <p className='text-xl md:text-2xl leading-relaxed'>professional cleaning, <br /> laundry, & hygiene solutions <br /> to keep your home & workplace spotless, fresh, & healthy.</p><br /><br />
-        <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
-            Book Now
-          </button>
+        <button
+        onClick={() => navigate("/booking")}
+        className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+      >
+        Book Now
+      </button>
         </div>
 
           <br />
@@ -91,9 +100,12 @@ useEffect(() => {
       </ol>
 
       <br />
-      <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
-            Book Now
-          </button>
+      <button
+        onClick={() => navigate("/booking")}
+        className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+      >
+        Book Now
+      </button>
       </div>
 
 
@@ -142,9 +154,12 @@ useEffect(() => {
             We are here for you!</h1> <br /> 
             <p className='text-xl md:text-[1.25rem] leading-relaxed'>Monday morning? Saturday afternoon? <br />
         Whatever time works for you, MyHygien is available <br /> from Mon - Sat! <br /> Our team can arrive at your home <br /> from 7am - 4pm daily. <br />🎵Oh men, we're active!🎵</p><br /><br />
-        <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
-            Book Now
-          </button>
+        <button
+        onClick={() => navigate("/booking")}
+        className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+      >
+        Book Now
+      </button>
         </div>
       </div>
 
@@ -163,9 +178,12 @@ useEffect(() => {
               <li className='text-sm md:text-xl'><b className='text-blue-600'>Customer Convenience:</b><br /> Our easy online booking system and flexible <br /> scheduling make it simple to get the cleaning services you need, when you need them.</li>
               <li className='text-sm md:text-xl'><b className='text-blue-600'>Services:</b><br /> We offer a wide range of cleaning services to meet your needs. <br />All-in-one hygiene solution (cleaning, laundry, and products)</li>
             </ul><br />
-            <button className="px-6 py-2 bg-blue-500 text-white rounded-4xl border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
-            Book Now
-          </button>        
+            <button
+        onClick={() => navigate("/booking")}
+        className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+      >
+        Book Now
+      </button>        
         </div>
         
 
@@ -183,7 +201,10 @@ useEffect(() => {
         </div>
 
           <div className='mb-20'>
-            <button className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer">
+          <button
+            onClick={() => navigate("/booking")}
+            className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
+            >
             Book Now
           </button>
           </div>
