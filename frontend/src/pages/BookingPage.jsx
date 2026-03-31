@@ -194,8 +194,8 @@ function BookingPage() {
           />
 
           <div>
-            {/* <p className="text-sm text-gray-500 mb-1">Select Date:</p> */}
-            <input type="date" name="date" placeholder="Select Date:" value={form.date} onChange={handleChange}
+            <p className="text-sm text-gray-500 mb-1 flex gap-1"><p className="md:hidden">Tap To</p> Select Date:</p>
+            <input type="date" name="date" value={form.date} onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none cursor-pointer" required />
           </div>
 
