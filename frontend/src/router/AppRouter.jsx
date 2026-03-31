@@ -7,6 +7,8 @@ import Services from "../pages/Services"
 import Gallery from "../pages/Gallery"
 import ScrollToTop from "../components/layout/ScrollToTop"
 import BookingPage from "../pages/BookingPage"
+import Photos from "../pages/Photos"
+import Videos from "../pages/Videos"
 
 function AppRouter() {
   return (
@@ -18,8 +20,10 @@ function AppRouter() {
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/gallery" element={<Gallery />} />
           <Route path="/booking" element={<BookingPage />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/photos" element={<Photos />} />
+          <Route path="/videos" element={<Videos />} />
         </Routes>
       </Layout>
     </BrowserRouter>
