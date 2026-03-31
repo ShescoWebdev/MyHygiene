@@ -23,6 +23,10 @@ function Testimonials() {
 
   const containerRef = useRef()
 
+  const READ_TIME = 3000   // <-- CHANGE THIS (3000 = 3 seconds)
+  const FLIP_DELAY = 700   // time before flip starts
+  const SLIDE_DURATION = 700 // must match transition duration-700
+
   // AUTO SLIDE
   useEffect(() => {
     if (paused) return
@@ -31,10 +35,17 @@ function Testimonials() {
 
       setActive(0)
 
+      // Flip after slight delay
+      setTimeout(() => {
+        setIsSliding(false)
+      }, FLIP_DELAY)
+
+      // Wait for reading time before sliding
       setTimeout(() => {
         setIsSliding(true)
-      }, 800)
+      }, READ_TIME)
 
+      // After slide animation completes
       setTimeout(() => {
         setItems(prev => {
           const first = prev[0]
@@ -42,9 +53,9 @@ function Testimonials() {
         })
         setIsSliding(false)
         setActive(-1)
-      }, 1500)
+      }, READ_TIME + SLIDE_DURATION)
 
-    }, 4000)
+    }, READ_TIME + SLIDE_DURATION + 1000)
 
     return () => clearInterval(interval)
   }, [paused])
@@ -115,7 +126,7 @@ function Card({ data, isFlipped }) {
 
   return (
     <div
-      className="w-full md:w-[220px] h-[220px] shrink-0 perspective cursor-pointer"
+      className="w-[250px] md:w-[250px] h-[300px] md:h-[300px] shrink-0 perspective cursor-pointer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -157,4 +168,3 @@ function Card({ data, isFlipped }) {
 }
 
 export default Testimonials
-

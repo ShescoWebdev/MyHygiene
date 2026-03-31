@@ -104,15 +104,14 @@ function Footer() {
             `}
           >
             <div className="flex flex-col gap-2">
-              <hr />
               <NavLink onClick={closeAll} to="/" className="text-gray-400 hover:text-yellow-400 transition">Home</NavLink>
-              <hr />
+              <hr className="pb-3"/>
               <NavLink onClick={closeAll} to="/about" className="text-gray-400 hover:text-yellow-400 transition">About Us</NavLink>
-              <hr />
+              <hr className="pb-3"/>
               <NavLink onClick={closeAll} to="/services" className="text-gray-400 hover:text-yellow-400 transition">Services</NavLink>
-              <hr />
+              <hr className="pb-3"/>
               <NavLink onClick={closeAll} to="/contact" className="text-gray-400 hover:text-yellow-400 transition">Contact Us</NavLink>
-              <hr />
+              <hr className="pb-8"/>
 
               {/* GALLERY DROPDOWN */}
               <div>

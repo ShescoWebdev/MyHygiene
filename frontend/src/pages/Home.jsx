@@ -63,7 +63,7 @@ useEffect(() => {
 
       <div className='home2 text-black p-10 pb-20 md:pb-0 flex flex-col gap-5 justify-between items-center md:flex-row md:h-[calc(100vh-64px)]'>
         <div>
-          <h1 className='text-2xl md:text-4xl font-[410]'>
+          <h1 className='text-2xl md:text-4xl font-semibold'>
             <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
             We provide -</h1> <br /> 
             <p className='text-xl md:text-2xl leading-relaxed'>professional cleaning, <br /> laundry, & hygiene solutions <br /> to keep your home & workplace spotless, fresh, & healthy.</p><br /><br />
@@ -81,22 +81,22 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className='home3 bg-green-100 p-10 pb-20 md:pb-28 flex flex-col gap-5 md:flex-row items-center md:justify-between md:h-[110vh]'>
+      <div className='home3 bg-green-100 p-10 pb-20 md:pb-28 flex flex-col gap-14 md:flex-row items-center md:h-[110vh]'>
       <div>
-        <h1 className='text-3xl md:text-4xl font-[410] pt-24'>
+        <h1 className='text-3xl md:text-4xl font-semibold md:pt-24'>
           <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
           How it works</h1>
-      <p className='text-lg md:text-2xl leading-relaxed'>Booking on MyHygiene is simple & straighforward! <br />
+      <p className='text-xl md:text-2xl pt-4 leading-relaxed'>Booking on MyHygiene is simple & straighforward!
       Get started in these four easy steps:</p> <br /><br />
 
       <ol className="list-decimal list-inside space-y-3 marker:text-blue-600 marker:font-bold marker:text-lg md:marker:text-xl">
-        <li className='text-sm md:text-xl'><b className='text-blue-600'>Select Your Service:</b> Choose from our range of cleaning, <br /> laundry, or hygiene services that best suit your needs.</li>
+        <li className='text-sm md:text-xl'><b className='text-blue-600'>Select Your Service:</b><br />Click on any of the "Book Now" buttons to choose from our range of cleaning, laundry, or hygiene services that best suit your needs.</li>
 
-        <li className='text-sm md:text-xl'><b className='text-blue-600'>Schedule Your Appointment:</b> Pick a date and time that works for you, <br /> and we'll take care of the rest.</li>
+        <li className='text-sm md:text-xl'><b className='text-blue-600'>Schedule Your Appointment:</b><br /> Pick a date and time that works for you, and we'll take care of the rest.</li>
 
-        <li className='text-sm md:text-xl'><b className='text-blue-600'>Professional Service:</b> Our trained professionals will arrive on time, <br /> equipped with the necessary tools to provide top-notch service.</li>
+        <li className='text-sm md:text-xl'><b className='text-blue-600'>Professional Service:</b> Our trained professionals will arrive on time, equipped with the necessary tools to provide top-notch service.</li>
         
-        <li className='text-sm md:text-xl'><b className='text-blue-600'>Enjoy a Clean Space:</b> Sit back and relax while we transform <br /> your home or workplace into a spotless, fresh, and healthy environment.</li>
+        <li className='text-sm md:text-xl'><b className='text-blue-600'>Enjoy a Clean Space:</b><br /> Sit back and relax while we transform your home or workplace into a spotless, fresh, and healthy environment.</li>
       </ol>
 
       <br />
@@ -109,7 +109,7 @@ useEffect(() => {
       </div>
 
 
-    <div className="relative w-full md:w-[600px] h-full overflow-hidden rounded-2xl">
+    <div className="relative w-full h-full overflow-hidden rounded-2xl">
   <div
     className="flex h-full transition-transform duration-500"
     style={{ transform: `translateX(-${current * 100}%)` }}
@@ -143,16 +143,16 @@ useEffect(() => {
 
 
 
-      <div className='home4 text-black p-10 flex flex-col items-center gap-22 md:flex-row md:h-[110vh]'>
+      <div className='home4 text-black p-10 flex flex-col items-center gap-24 md:flex-row md:h-[110vh]'>
         <div className='order-2 md:order-1'>
           <img src="/photos/Gladys.jpeg" width={600} height={400} alt="Professional Cleaning" className='rounded-2xl'/>
         </div>
 
         <div className='order-1 md:order-2'>
-          <h1 className='text-xl md:text-4xl leading-relaxed font-[410]'>
+          <h1 className='text-3xl md:text-4xl leading-relaxed font-semibold'>
             <img src="/photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
-            We are here for you!</h1> <br /> 
-            <p className='text-xl md:text-[1.25rem] leading-relaxed'>Monday morning? Saturday afternoon? <br />
+            We are here for you!</h1> 
+            <p className='text-xl md:text-[1.25rem] pt-4 leading-relaxed'>Monday morning? Saturday afternoon? <br />
         Whatever time works for you, MyHygien is available <br /> from Mon - Sat! <br /> Our team can arrive at your home <br /> from 7am - 4pm daily. <br />🎵Oh men, we're active!🎵</p><br /><br />
         <button
         onClick={() => navigate("/booking")}
@@ -167,16 +167,16 @@ useEffect(() => {
 
       <div className='home5 text-black bg-[#faf6e8] p-10 flex flex-col items-center gap-16 md:flex-row md:h-[125vh]'>
         <div>
-          <h1 className='text-xl md:text-4xl leading-relaxed font-[410]'>
+          <h1 className='text-2xl md:text-4xl leading-relaxed font-semibold'>
             <img src="/photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
             Why Choose MyHygiene?</h1> 
-            <p className='text-xl md:text-[1.25rem] leading-relaxed'>We make sure the following is true:</p><br />
+            <p className='text-xl md:text-2xl pt-4 leading-relaxed'>We make sure the following is true:</p><br />
             <ul className="list-disc list-inside space-y-3 marker:text-blue-600 marker:font-bold marker:text-lg md:marker:text-xl">
-              <li className='text-sm md:text-xl'><b className='text-blue-600'>Professional and reliable team:</b><br /> Our team is background-checked, trained, <br /> and dedicated to providing reliable and high-quality service.</li>
-              <li className='text-sm md:text-xl'><b className='text-blue-600'>Attention to detail:</b><br /> We pay close attention to every aspect <br /> of the cleaning process to ensure you get the best results.</li>
+              <li className='text-sm md:text-xl'><b className='text-blue-600'>Professional and reliable team:</b><br /> Our team is background-checked, trained, and dedicated to providing reliable and high-quality service.</li>
+              <li className='text-sm md:text-xl'><b className='text-blue-600'>Attention to detail:</b><br /> We pay close attention to every aspect of the cleaning process to ensure you get the best results.</li>
               <li className='text-sm md:text-xl'><b className='text-blue-600'>Customer Satisfaction:</b><br /> We prioritize your satisfaction and strive to exceed <br /> your expectations with every service.</li>
-              <li className='text-sm md:text-xl'><b className='text-blue-600'>Customer Convenience:</b><br /> Our easy online booking system and flexible <br /> scheduling make it simple to get the cleaning services you need, when you need them.</li>
-              <li className='text-sm md:text-xl'><b className='text-blue-600'>Services:</b><br /> We offer a wide range of cleaning services to meet your needs. <br />All-in-one hygiene solution (cleaning, laundry, and products)</li>
+              <li className='text-sm md:text-xl'><b className='text-blue-600'>Customer Convenience:</b><br /> Our easy online booking system and flexible scheduling make it simple to get the cleaning services you need, when you need them.</li>
+              <li className='text-sm md:text-xl'><b className='text-blue-600'>Services:</b><br /> We offer a wide range of cleaning services to meet your needs. All-in-one hygiene solution (cleaning, laundry, and products)</li>
             </ul><br />
             <button
         onClick={() => navigate("/booking")}
@@ -188,7 +188,7 @@ useEffect(() => {
         
 
         <div>
-          <img src="/photos/Gladys.jpeg" width={600} height={400} alt="Professional Cleaning" className='rounded-2xl'/>
+          <img src="/photos/Gladys.jpeg" width={1500} alt="Professional Cleaning" className='rounded-2xl'/>
         </div>
       </div>
 
