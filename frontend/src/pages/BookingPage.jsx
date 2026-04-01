@@ -127,7 +127,7 @@ function BookingPage() {
       </div>
 
       {/* FORM */}
-      <div className="max-w-2xl mx-auto bg-white shadow-xl rounded-2xl p-6 border-t-4 border-[#f0b000]">
+      <div className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-32 rounded-2xl p-6 border-t-4 border-[#f0b000]">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Book a Service</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">

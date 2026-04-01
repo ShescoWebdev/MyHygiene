@@ -142,7 +142,12 @@ function Card({ data, isFlipped }) {
           className={`absolute w-full h-full ${data.color} flex items-center justify-center rounded-xl`}
           style={{ backfaceVisibility: "hidden" }}
         >
-          <img src="/photos/Logo3.png" className="w-44" />
+          <img 
+          src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png" 
+          className="w-44
+          text-sm"
+          loading="lazy"
+          decoding="async" />
         </div>
 
         {/* BACK */}
