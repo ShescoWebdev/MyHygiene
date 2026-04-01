@@ -229,7 +229,7 @@ function Navbar() {
               navigate("/booking")
               setOpen(false)
             }}
-            className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 hover:bg-transparent hover:text-blue-500 transition duration-300 cursor-pointer"
+            className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 hover:bg-transparent hover:text-blue-500 transition duration-300 cursor-pointer mb-10"
           >
             Book Now
           </button>
