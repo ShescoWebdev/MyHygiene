@@ -108,14 +108,22 @@ function BookingPage() {
 
       {/* HERO */}
       <div>
-        <h1 className="text-2xl md:text-5xl text-center font-semibold">
+        <h1 className="text-2xl md:text-5xl pt-10 text-center font-semibold">
           Book Your Service with MyHygiene
         </h1>
         <p className="text-center mt-3 text-gray-600">
           Browse our available services in the pricing table below, then select your preferred date and time to schedule your booking.
         </p>
 
-        <img src="/photos/Pricing.jpeg" alt="Pricing" className="m-auto mt-10 mb-10 rounded-2xl" />
+        <img 
+        src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993815/Pricing_g9poup.jpg" 
+        alt="Pricing List" 
+        className="
+        m-auto mt-10 
+        mb-10 rounded-2xl
+        text-sm"
+        loading="lazy"
+        decoding="async" />
       </div>
 
       {/* FORM */}

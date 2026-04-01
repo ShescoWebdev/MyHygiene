@@ -13,9 +13,15 @@ function Videos() {
 
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
+
   const videoRefs = useRef([])
   const fullscreenVideoRef = useRef(null)
-  const featuredVideoRef = useRef(null) // ✅ NEW
+  const featuredVideoRef = useRef(null)
+
+  // ✅ Always reset refs properly when videos render
+  useEffect(() => {
+    videoRefs.current = []
+  }, [showVideos])
 
   const next = () => {
     setCurrentIndex((prev) => (prev + 1) % videos.length)
@@ -51,38 +57,46 @@ function Videos() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [currentIndex])
 
-  // Pause all modal videos
+  // ✅ Safe pause function
   const pauseAllVideos = () => {
     videoRefs.current.forEach((vid) => {
-      if (vid) {
-        vid.pause()
-        vid.currentTime = 0
+      if (vid && typeof vid.pause === "function") {
+        try {
+          vid.pause()
+          vid.currentTime = 0
+        } catch (err) {
+          console.warn("Video pause error:", err)
+        }
       }
     })
   }
 
-  // ✅ Pause featured video when opening modal
+  // Pause featured video when opening modal
   useEffect(() => {
     if (showVideos && featuredVideoRef.current) {
-      featuredVideoRef.current.pause()
-      featuredVideoRef.current.currentTime = 0
+      try {
+        featuredVideoRef.current.pause()
+        featuredVideoRef.current.currentTime = 0
+      } catch {}
     }
   }, [showVideos])
 
-  // Handle fullscreen modal video
+  // Handle fullscreen video
   useEffect(() => {
     if (currentIndex !== null) {
       pauseAllVideos()
 
       setTimeout(() => {
         if (fullscreenVideoRef.current) {
-          fullscreenVideoRef.current.play()
+          fullscreenVideoRef.current.play().catch(() => {})
         }
-      }, 50)
+      }, 100)
     } else {
       if (fullscreenVideoRef.current) {
-        fullscreenVideoRef.current.pause()
-        fullscreenVideoRef.current.currentTime = 0
+        try {
+          fullscreenVideoRef.current.pause()
+          fullscreenVideoRef.current.currentTime = 0
+        } catch {}
       }
     }
   }, [currentIndex])
@@ -99,24 +113,6 @@ function Videos() {
       document.body.style.overflow = "auto"
     }
   }, [showVideos, currentIndex])
-
-  // ✅ Fix mobile zoom bug after exiting fullscreen
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setTimeout(() => {
-          window.scrollTo(window.scrollX, window.scrollY)
-          document.body.style.transform = "scale(1)"
-        }, 50)
-      }
-    }
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange)
-
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange)
-    }
-  }, [])
 
   return (
     <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
@@ -138,7 +134,7 @@ function Videos() {
         </h2>
 
         <video
-          ref={featuredVideoRef}  // ✅ ADDED
+          ref={featuredVideoRef}
           src={videos[0]}
           controls
           preload="metadata"
@@ -163,22 +159,35 @@ function Videos() {
 
       {/* VIDEO MODAL */}
       {showVideos && (
-        <Modal onClose={() => setShowVideos(false)}>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {videos.map((src, index) => (
-              <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
-                <video
-                  ref={(el) => (videoRefs.current[index] = el)}
-                  src={src}
-                  controls
-                  preload="metadata"
-                  onClick={() => setCurrentIndex(index)}
-                  className="w-full h-full object-cover cursor-pointer"
-                />
-              </div>
-            ))}
+        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
+          <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
+
+            <button
+              onClick={() => setShowVideos(false)}
+              className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl font-bold z-50"
+            >
+              ✕
+            </button>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {videos.map((src, index) => (
+                <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
+                  <video
+                    ref={(el) => {
+                      if (el) videoRefs.current[index] = el
+                    }}
+                    src={src}
+                    controls
+                    preload="metadata"
+                    onClick={() => setCurrentIndex(index)}
+                    className="w-full h-full object-cover cursor-pointer"
+                  />
+                </div>
+              ))}
+            </div>
+
           </div>
-        </Modal>
+        </div>
       )}
 
       {/* FULLSCREEN VIEW */}
