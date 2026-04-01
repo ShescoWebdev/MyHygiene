@@ -72,7 +72,7 @@ function Navbar() {
         {/* LOGO */}
         <div className="cursor-pointer">
           <NavLink to="/">
-            <img src="/photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
+            <img src="https://res.cloudinary.com/detg3ravj/image/upload/v1774993795/Logo3_ueigkn.png" alt="MyHygiene Logo" width="130" height="50" />
           </NavLink>
         </div>
 

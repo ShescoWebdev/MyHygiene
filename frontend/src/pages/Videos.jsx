@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from "react"
 function Videos() {
 
   const videos = [
-    "/videos/vid1.mp4",
-    "/videos/vid2.mp4",
-    "/videos/vid3.mp4"
+    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993190/vid1_watb2r.mp4",
+    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993202/vid2_eaohxp.mp4",
+    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993221/vid3_o6vyno.mp4"
   ]
 
   const [showVideos, setShowVideos] = useState(false)
@@ -15,6 +15,7 @@ function Videos() {
   const touchEndX = useRef(0)
   const videoRefs = useRef([])
   const fullscreenVideoRef = useRef(null)
+  const featuredVideoRef = useRef(null) // ✅ NEW
 
   const next = () => {
     setCurrentIndex((prev) => (prev + 1) % videos.length)
@@ -60,7 +61,15 @@ function Videos() {
     })
   }
 
-  // Handle fullscreen video
+  // ✅ Pause featured video when opening modal
+  useEffect(() => {
+    if (showVideos && featuredVideoRef.current) {
+      featuredVideoRef.current.pause()
+      featuredVideoRef.current.currentTime = 0
+    }
+  }, [showVideos])
+
+  // Handle fullscreen modal video
   useEffect(() => {
     if (currentIndex !== null) {
       pauseAllVideos()
@@ -91,6 +100,24 @@ function Videos() {
     }
   }, [showVideos, currentIndex])
 
+  // ✅ Fix mobile zoom bug after exiting fullscreen
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setTimeout(() => {
+          window.scrollTo(window.scrollX, window.scrollY)
+          document.body.style.transform = "scale(1)"
+        }, 50)
+      }
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    }
+  }, [])
+
   return (
     <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
 
@@ -100,7 +127,7 @@ function Videos() {
           Our Video Gallery
         </h1>
         <p className="text-gray-600 md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Take a look at some of our work in action! And our journey of excellence. Our video gallery showcases the quality and professionalism we bring to every project. From quick highlights to in-depth walkthroughs, see how we transform spaces and deliver exceptional results.
+          Take a look at some of our work in action! And our journey of excellence.
         </p>
       </div>
 
@@ -111,6 +138,7 @@ function Videos() {
         </h2>
 
         <video
+          ref={featuredVideoRef}  // ✅ ADDED
           src={videos[0]}
           controls
           preload="metadata"
@@ -157,7 +185,6 @@ function Videos() {
       {currentIndex !== null && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
 
-          {/* CLOSE */}
           <button
             onClick={() => setCurrentIndex(null)}
             className="fixed top-5 right-6 text-white text-3xl font-bold z-50"
@@ -185,22 +212,3 @@ function Videos() {
     </div>
   )
 }
-
-/* MODAL */
-function Modal({ children, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
-      <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
-        <button
-          onClick={onClose}
-          className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl font-bold z-50"
-        >
-          ✕
-        </button>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-export default Videos

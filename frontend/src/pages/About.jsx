@@ -18,18 +18,40 @@ function About() {
       </div>
 
     <div className='p-10 bg-white rounded-2xl'>
-      <img src="/photos/Team.jpeg" width={1100} height={600} alt="Our Team" className='rounded-2xl'/>
+      <img 
+      src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993810/Team_esimfb.jpg" 
+      width={1100} height={600} 
+      alt="Our Team" 
+      className='rounded-2xl text-sm'
+      loading="lazy"
+      decoding='async'/>
     </div>
 
 
     <div className='about2 text-black p-10 flex flex-col gap-14 justify-between items-center md:flex-row'>
         <div className='order-2 md:order-1'>
-          <img src="/photos/B&W.jpg" alt="MyHygiene" width="550" height="50" className='rounded-2xl md:w-[900px] md:h-[500px]'/>
+          <img 
+          src="https://res.cloudinary.com/detg3ravj/image/upload//f_auto,q_auto,w_1200/v1774993463/B_W_mjiug9.jpg" 
+          alt="MyHygiene" 
+          width="550" height="50" 
+          className='rounded-2xl 
+          md:w-[900px] md:h-[500px]
+          text-sm'
+          loading="lazy"
+          decoding='async'
+          />
         </div>
         
         <div className='order-1 md:order-2'>
           <h1 className='text-xl md:text-4xl pb-2 font-[410]'>
-            <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
+            <img 
+            src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png" 
+            alt="MyHygiene Logo" 
+            width="130" height="50"
+            className='text-sm'
+            loading="lazy"
+            decoding='async'
+             />
             Who we are -</h1> 
             <p className='text-xs md:text-xl leading-relaxed'>MyHygiene Cleaning & Maintenance Services <br /> is a trusted cleaning company <br /> committed to delivering high-quality cleaning,<br /> laundry, and hygiene solutions.
             <br /><br />Founded in January, 2025, we have quickly established ourselves as a reliable and customer-focused service provider. </p>
@@ -49,7 +71,14 @@ function About() {
     <div className='about4 text-black p-10 gap-5 flex flex-col justify-between items-center md:flex-row'>
         <div>
             <h1 className='text-xl md:text-4xl pb-2 font-[410]'>
-              <img src="photos/Logo3.png" alt="MyHygiene Logo" width="130" height="50" />
+              <img 
+            src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png" 
+            alt="MyHygiene Logo" 
+            width="130" height="50"
+            className='text-sm'
+            loading="lazy"
+            decoding='async'
+             />
               Our Commitment</h1>
             <p className='text-xs md:text-xl leading-relaxed'>We understand that cleanliness <br /> goes beyond appearance—it affects health, comfort, and productivity. <br /><br /> That’s why we provide reliable and detailed services designed to keep your environment and fabrics fresh, br safe, and spotless. <br /><br />
             Our team is professional, dedicated, <br /> and focused on delivering excellence in every service. <br />
@@ -57,7 +86,16 @@ function About() {
         </div>
 
         <div>
-          <img src="/photos/Team1.jpg" alt="MyHygiene"  className='rounded-2xl w-[300px] h-[250px] md:w-[1500px] md:h-[500px]'/>
+          <img 
+          src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993577/Img3_wdfuwr.jpg" 
+          alt="MyHygiene" 
+          className='rounded-2xl 
+          w-[300px] h-[250px] 
+          md:w-[1500px] md:h-[500px]
+          text-sm'
+          loading="lazy"
+          decoding='async'
+          />
         </div>
     </div>
 

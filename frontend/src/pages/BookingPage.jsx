@@ -279,12 +279,29 @@ function BookingPage() {
                   <p className="text-gray-600 mt-2">📌 {b.instructions}</p>
                 )}
 
-                <button
+                <div className="flex justify-between mt-4">
+                  <button
                   onClick={() => handleEdit(index)}
                   className="mt-3 text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition"
                 >
                   Edit
+                  </button>
+
+                <button
+                  onClick={() => handleDelete(index)}
+                  className="mt-3 text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition"
+                >
+                  Delete
                 </button>
+
+                <button
+                  onClick={() => handleEdit(index)}
+                  className="mt-3 text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition"
+                >
+                  Proceed
+                </button>
+                </div>
+
 
               </div>
             ))}
