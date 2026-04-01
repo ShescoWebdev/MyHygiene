@@ -61,7 +61,7 @@ function Home() {
           className="video-bg"
         >
           <source 
-          src="https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto/v1774993190/vid1_watb2r.mp4" 
+          src="https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto/v1775062182/vid1_1_itka4v.mp4" 
           type="video/mp4" />
         </video>
 
