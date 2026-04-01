@@ -45,7 +45,7 @@ function Footer() {
 
         {/* LOGO + NAME */}
         <div className="flex flex-col gap-3">
-          <img src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993792/Logo_vlb0m8.jpg" 
+          <img src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993793/Logo1_rity18.jpg" 
           alt="MyHygiene Logo" 
           className="
           w-32 rounded
