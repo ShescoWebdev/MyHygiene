@@ -51,7 +51,7 @@ function Home() {
   return (
     <div className='home'>
 
-      <div className="home1">
+      <div className="home1 bg-yellow-500">
         <video
           autoPlay
           loop
