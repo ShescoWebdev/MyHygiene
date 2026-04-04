@@ -17,7 +17,7 @@ function Offline() {
       setTimeout(() => {
         const lastPage = localStorage.getItem("lastPage") || "/"
         navigate(lastPage)
-      }, 3000)
+      }, 5000)
     }
 
     window.addEventListener("online", handleOnline)
