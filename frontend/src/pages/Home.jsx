@@ -83,7 +83,8 @@ useEffect(() => {
       <PageWrapper>
     <div className='home'>
 
-      <video
+      <div className="home1 bg-yellow-500">
+        <video
   ref={videoRef}
   loop
   muted
