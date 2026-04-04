@@ -4,6 +4,34 @@ import Skeleton from "../components/Skeleton"
 
 function Videos() {
 
+  useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (!document.fullscreenElement) {
+      // Reset zoom level
+      const meta = document.querySelector("meta[name=viewport]");
+      if (meta) {
+        meta.setAttribute(
+          "content",
+          "width=device-width, initial-scale=1, maximum-scale=1"
+        );
+      }
+
+      setTimeout(() => {
+        if (meta) {
+          meta.setAttribute(
+            "content",
+            "width=device-width, initial-scale=1"
+          );
+        }
+      }, 300);
+    }
+  };
+
+  document.addEventListener("fullscreenchange", handleFullscreenChange);
+  return () =>
+    document.removeEventListener("fullscreenchange", handleFullscreenChange);
+}, []);
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
