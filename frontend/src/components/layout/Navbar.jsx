@@ -166,7 +166,7 @@ function Navbar() {
 
       {/* MOBILE MENU */}
       <div
-        className={`fixed right-0 top-[88.8px] h-[calc(100vh-64px)] w-[70%] bg-[#f0b000] z-50 transform transition-transform duration-[1300ms] ${
+        className={`fixed right-0 top-[88.8px] h-[calc(100vh-64px)] w-[70%] bg-[#f0b000] z-50 transform transition-transform duration-[1100ms] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
