@@ -82,7 +82,7 @@ useEffect(() => {
   }, [])
 
   return (
-      <PageWrapper onAnimationComplete={handleAnimationComplete}>
+      <PageWrapper>
     <div className='home'>
 
       <div className="home1 bg-yellow-500">
