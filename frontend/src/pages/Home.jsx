@@ -11,18 +11,27 @@ useEffect(() => {
   const video = videoRef.current
   if (!video) return
 
+  video.muted = true
+  video.defaultMuted = true
+  video.setAttribute("muted", "")
+  video.setAttribute("playsinline", "")
+  video.setAttribute("webkit-playsinline", "")
+
   const playVideo = () => {
-    video.play().catch(() => {})
+    const promise = video.play()
+    if (promise !== undefined) {
+      promise.catch(() => {
+        // Try again after slight delay (mobile fix)
+        setTimeout(() => {
+          video.play().catch(() => {})
+        }, 800)
+      })
+    }
   }
 
-  video.addEventListener("canplay", playVideo)
+  // Delay play slightly (important for mobile)
+  setTimeout(playVideo, 300)
 
-  // Try immediately too
-  playVideo()
-
-  return () => {
-    video.removeEventListener("canplay", playVideo)
-  }
 }, [])
 
   const navigate = useNavigate();
@@ -74,13 +83,14 @@ useEffect(() => {
       <PageWrapper>
     <div className='home'>
 
-      <div className="home1 bg-yellow-500">
-        <video
+      <video
   ref={videoRef}
   loop
   muted
   playsInline
+  autoPlay
   preload="auto"
+  poster="https://res.cloudinary.com/detg3ravj/image/upload/v1774993489/Home2_xuaqyh.jpg"
   className="video-bg"
 >
   <source
