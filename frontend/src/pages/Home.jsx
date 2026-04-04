@@ -7,13 +7,35 @@ function Home() {
 
   const videoRef = useRef(null)
 
-const handleAnimationComplete = () => {
-  if (videoRef.current) {
-    videoRef.current.muted = true
-    videoRef.current.play().catch(() => {})
-  }
-}
+useEffect(() => {
+  const video = videoRef.current
 
+  if (!video) return
+
+  const tryPlay = async () => {
+    try {
+      await video.play()
+    } catch (err) {
+      // Retry after small delay
+      setTimeout(() => {
+        video.play().catch(() => {})
+      }, 500)
+    }
+  }
+
+  const handleLoaded = () => {
+    tryPlay()
+  }
+
+  video.addEventListener("loadeddata", handleLoaded)
+
+  // Force reload
+  video.load()
+
+  return () => {
+    video.removeEventListener("loadeddata", handleLoaded)
+  }
+}, [])
   const navigate = useNavigate();
 
 
@@ -65,19 +87,18 @@ const handleAnimationComplete = () => {
 
       <div className="home1 bg-yellow-500">
         <video
-          ref={videoRef}
-          // autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="video-bg"
-        >
-          <source 
-            src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
-            type="video/mp4"
-          />
-        </video>
+  ref={videoRef}
+  loop
+  muted
+  playsInline
+  preload="auto"
+  className="video-bg"
+>
+  <source
+    src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
+    type="video/mp4"
+  />
+</video>
 
         <div className="video-overlay"></div>
 
