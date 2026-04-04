@@ -7,13 +7,12 @@ function Home() {
 
   const videoRef = useRef(null)
 
-useEffect(() => {
-  const video = videoRef.current
-  if (video) {
-    video.muted = true
-    video.play().catch(() => {})
+const handleAnimationComplete = () => {
+  if (videoRef.current) {
+    videoRef.current.muted = true
+    videoRef.current.play().catch(() => {})
   }
-}, [])
+}
 
   const navigate = useNavigate();
 
@@ -61,24 +60,24 @@ useEffect(() => {
   }, [])
 
   return (
-      <PageWrapper>
+      <PageWrapper onAnimationComplete={handleAnimationComplete}>
     <div className='home'>
 
       <div className="home1 bg-yellow-500">
         <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className="video-bg"
-      >
-        <source 
-          src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
-          type="video/mp4"
-        />
-      </video>
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="video-bg"
+        >
+          <source 
+            src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
+            type="video/mp4"
+          />
+        </video>
 
         <div className="video-overlay"></div>
 
