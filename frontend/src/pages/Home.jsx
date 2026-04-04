@@ -5,37 +5,24 @@ import PageWrapper from '../components/PageWrapper';
 
 function Home() {
 
-  const videoRef = useRef(null)
-
-useEffect(() => {
+  useEffect(() => {
   const video = videoRef.current
-
   if (!video) return
 
-  const tryPlay = async () => {
-    try {
-      await video.play()
-    } catch (err) {
-      // Retry after small delay
-      setTimeout(() => {
-        video.play().catch(() => {})
-      }, 500)
-    }
+  const playVideo = () => {
+    video.play().catch(() => {})
   }
 
-  const handleLoaded = () => {
-    tryPlay()
-  }
+  video.addEventListener("canplay", playVideo)
 
-  video.addEventListener("loadeddata", handleLoaded)
-
-  // Force reload
-  video.load()
+  // Try immediately too
+  playVideo()
 
   return () => {
-    video.removeEventListener("loadeddata", handleLoaded)
+    video.removeEventListener("canplay", playVideo)
   }
 }, [])
+
   const navigate = useNavigate();
 
 
@@ -95,7 +82,7 @@ useEffect(() => {
   className="video-bg"
 >
   <source
-    src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
+    src="https://res.cloudinary.com/detg3ravj/video/upload/v1774993190/vid1_watb2r.mp4"
     type="video/mp4"
   />
 </video>
