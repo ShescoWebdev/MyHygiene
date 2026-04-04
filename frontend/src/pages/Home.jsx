@@ -66,7 +66,7 @@ const handleAnimationComplete = () => {
       <div className="home1 bg-yellow-500">
         <video
           ref={videoRef}
-          autoPlay
+          // autoPlay
           loop
           muted
           playsInline
