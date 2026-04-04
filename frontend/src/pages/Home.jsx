@@ -1,10 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Testimonials from '../components/layout/Testimonials'
 import { useNavigate } from "react-router-dom";
+import PageWrapper from '../components/PageWrapper';
 
 function Home() {
 
+  const videoRef = useRef(null)
+
+useEffect(() => {
+  const video = videoRef.current
+  if (video) {
+    video.muted = true
+    video.play().catch(() => {})
+  }
+}, [])
+
   const navigate = useNavigate();
+
 
       const images = [
       "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993489/Home2_xuaqyh.jpg",
@@ -49,21 +61,24 @@ function Home() {
   }, [])
 
   return (
+      <PageWrapper>
     <div className='home'>
 
       <div className="home1 bg-yellow-500">
         <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="none"
-          className="video-bg"
-        >
-          <source 
-          src="https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto/v1774993190/vid1_watb2r.mp4" 
-          type="video/mp4" />
-        </video>
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="video-bg"
+      >
+        <source 
+          src="https://res.cloudinary.com/detg3ravj/video/upload/q_auto/v1774993190/vid1_watb2r.mp4"
+          type="video/mp4"
+        />
+      </video>
 
         <div className="video-overlay"></div>
 
@@ -266,7 +281,7 @@ function Home() {
       </div>
 
 
-      <div className='p-10 pb-20 md:h-[100vh]'>
+      <div className='p-10 pb-20 md:h-[110vh]'>
         <h1 className='text-2xl md:text-4xl font-[410] flex flex-col pt-10 mb-10'>
           <img 
           src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png" alt="MyHygiene Logo" 
@@ -290,6 +305,7 @@ function Home() {
       </div>
 
     </div>
+    </PageWrapper>
   )
 }
 

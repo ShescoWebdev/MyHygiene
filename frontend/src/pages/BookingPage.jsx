@@ -1,7 +1,8 @@
 import { useState } from "react";
+import PageWrapper from "../components/PageWrapper"
 
 function BookingPage() {
-  const [form, setForm] = useState({
+      const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
@@ -104,7 +105,8 @@ function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <PageWrapper>
+        <div className="min-h-screen bg-gray-50 py-10 px-4">
 
       {/* HERO */}
       <div>
@@ -317,7 +319,8 @@ function BookingPage() {
         )}
       </div>
     </div>
-  );
+    </PageWrapper>
+  )
 }
 
 export default BookingPage;

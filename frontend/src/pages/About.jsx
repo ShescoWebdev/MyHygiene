@@ -1,11 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
-
+import PageWrapper from '../components/PageWrapper';
+import Skeleton from '../components/Skeleton';
+  
 function About() {
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 3000)
+  }, [])
   return (
-    <div className='about1 text-black bg-[#fff5ed] pb-20 md:pb-0 flex flex-col gap-5 justify-between items-center mt-7 md:mt-[-26px] pt-10'>
-      <div className='flex items-center flex-col justify-center w-full md:h-[calc(50vh-64px)] text-center'>
+    <PageWrapper>
+      <div className='about1 text-black bg-[#fff5ed] pb-20 md:pb-0 flex flex-col gap-5 justify-between items-center mt-7 md:mt-[-26px] pt-10'>
+      <div className='p-5 flex items-center flex-col justify-center w-full md:h-[calc(50vh-64px)] text-center'>
         <h1 className='text-3xl md:text-5xl font-[410] pb-4 text-center'> About MyHygiene</h1>
       <p className='text-sm md:text-xl'>MyHygiene is a platform that connects you with skilled and thoroughly vetted professionals for your cleaning needs.</p>
 
@@ -17,7 +26,10 @@ function About() {
       </button>
       </div>
 
-    <div className='p-10 bg-white rounded-2xl'>
+      {loading ? (
+      <Skeleton className="w-[22.5rem] h-[17rem] md:w-[80vw] md:h-[600vh] m-auto rounded-2xl" />
+    ) : (
+      <div className='p-5 md:p-10 m-5 bg-white rounded-2xl'>
       <img 
       src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993810/Team_esimfb.jpg" 
       width={1100} height={600} 
@@ -26,8 +38,9 @@ function About() {
       loading="lazy"
       decoding='async'/>
     </div>
+    )}
 
-
+  
     <div className='about2 text-black p-10 flex flex-col gap-14 justify-between items-center md:flex-row'>
         <div className='order-2 md:order-1'>
           <img 
@@ -110,6 +123,7 @@ function About() {
       </button>
             </div>
     </div>
+    </PageWrapper>
   )
 }
 

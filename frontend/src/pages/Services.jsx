@@ -1,7 +1,9 @@
 import React from 'react'
+import PageWrapper from '../components/PageWrapper'
 
 function Services() {
   return (
+    <PageWrapper>
     <div className='services1 mt-7 md:mt-[-1.7rem] px-5 md:px-20 py-10 bg-[#faf6e8]'>
 
       {/* HEADER */}
@@ -90,6 +92,7 @@ function Services() {
       </div>
 
     </div>
+    </PageWrapper>
   )
 }
 

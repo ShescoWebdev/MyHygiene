@@ -1,11 +1,19 @@
 import { useState, useRef, useEffect } from "react"
+import PageWrapper from "../components/PageWrapper"
+import Skeleton from "../components/Skeleton"
 
 function Videos() {
 
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 3000)
+  }, [])
+
   const videos = [
-    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993190/vid1_watb2r.mp4",
-    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993202/vid2_eaohxp.mp4",
-    "https://res.cloudinary.com/detg3ravj/video/upload/f_auto,q_auto,w_1200/v1774993221/vid3_o6vyno.mp4"
+    "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993190/vid1_watb2r.mp4",
+    "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993202/vid2_eaohxp.mp4",
+    "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993221/vid3_o6vyno.mp4"
   ]
 
   const [showVideos, setShowVideos] = useState(false)
@@ -18,7 +26,7 @@ function Videos() {
   const fullscreenVideoRef = useRef(null)
   const featuredVideoRef = useRef(null)
 
-  // ✅ Always reset refs properly when videos render
+  // Always reset refs properly when videos render
   useEffect(() => {
     videoRefs.current = []
   }, [showVideos])
@@ -115,6 +123,7 @@ function Videos() {
   }, [showVideos, currentIndex])
 
   return (
+    <PageWrapper>
     <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
 
       {/* HEADER */}
@@ -133,6 +142,11 @@ function Videos() {
           Videos
         </h2>
 
+          {loading ? (
+            <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
+            
+          ) :(
+            
         <video
           ref={featuredVideoRef}
           src={videos[0]}
@@ -142,8 +156,10 @@ function Videos() {
             pauseAllVideos()
             setCurrentIndex(0)
           }}
-          className="mx-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer"
+          className="mx-auto m-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer"
         />
+      )}
+        
 
         <button
           onClick={() => setShowVideos(true)}
@@ -219,6 +235,7 @@ function Videos() {
       )}
 
     </div>
+    </PageWrapper>
   )
 }
 

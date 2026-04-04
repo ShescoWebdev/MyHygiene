@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import PageWrapper from "../components/PageWrapper"
 
 function Gallery() {
 
@@ -128,6 +129,7 @@ function Gallery() {
   }, [showPhotos, showVideos, currentIndex])
 
   return (
+    <PageWrapper>
     <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
 
       {/* HEADER */}
@@ -271,12 +273,14 @@ function Gallery() {
       )}
 
     </div>
+    </PageWrapper>
   )
 }
-
+  
 /* MODAL */
 function Modal({ children, onClose }) {
   return (
+    <PageWrapper>
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
       <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
         <button
@@ -288,7 +292,11 @@ function Modal({ children, onClose }) {
         {children}
       </div>
     </div>
+    </PageWrapper>
   )
 }
+
+
+
 
 export default Gallery

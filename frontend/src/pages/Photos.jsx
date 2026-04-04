@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from "react"
+import PageWrapper from "../components/PageWrapper"
+import Skeleton from "../components/Skeleton"
 
 function Photos() {
+
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 3000)
+  }, [])
 
   const photos = [
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993567/Img1_djwcln.jpg",
@@ -86,6 +94,7 @@ function Photos() {
   }, [showPhotos, currentIndex])
 
   return (
+    <PageWrapper>
     <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
 
       {/* HEADER */}
@@ -103,13 +112,20 @@ function Photos() {
         <h2 className="text-2xl md:text-3xl font-semibold mb-6 flex justify-center w-[200px] m-auto border-b-4 border-[#f0b000] rounded-full">
           Photos
         </h2>
-        <img
-          src={photos[0]}
-          loading="lazy"
-          decoding="async"
-          onClick={() => setCurrentIndex(0)}
-          className="mx-auto text-sm w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer hover:scale-105 transition"
+
+    {loading ? (
+        <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
+    ) : (
+      <img
+      src={photos[0]}
+      loading="lazy"
+      decoding="async"
+      onClick={() => setCurrentIndex(0)}
+      className="mx-auto text-sm w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer hover:scale-105 transition"
         />
+      )}
+
+        
         <button
           onClick={() => setShowPhotos(true)}
           className="mt-4 px-6 py-2 bg-[#f0b000] rounded-full hover:scale-105 transition"
@@ -170,12 +186,14 @@ function Photos() {
       )}
 
     </div>
+    </PageWrapper>
   )
 }
 
 /* MODAL */
 function Modal({ children, onClose }) {
   return (
+    <PageWrapper>
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
       <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
         <button
@@ -187,6 +205,7 @@ function Modal({ children, onClose }) {
         {children}
       </div>
     </div>
+    </PageWrapper>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
-import { NavLink, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { Menu, X } from "lucide-react"
+import SafeNavLink from "../SafeNavLink"
 
 function Navbar() {
   const [open, setOpen] = useState(false)
@@ -71,9 +72,9 @@ function Navbar() {
         
         {/* LOGO */}
         <div className="cursor-pointer">
-          <NavLink to="/">
+          <SafeNavLink to="/">
             <img src="https://res.cloudinary.com/detg3ravj/image/upload/v1774993795/Logo3_ueigkn.png" alt="MyHygiene Logo" width="130" height="50" />
-          </NavLink>
+          </SafeNavLink>
         </div>
 
         {/* TOGGLE BUTTON */}
@@ -86,10 +87,18 @@ function Navbar() {
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex space-x-6 items-center">
-          <NavLink to="/" className={linkStyle}>Home</NavLink>
-          <NavLink to="/about" className={linkStyle}>About Us</NavLink>
-          <NavLink to="/services" className={linkStyle}>Services</NavLink>
-          <NavLink to="/contact" className={linkStyle}>Contact Us</NavLink>
+          <SafeNavLink to="/" className={linkStyle}>
+            Home
+          </SafeNavLink>
+          <SafeNavLink to="/about" className={linkStyle}>
+            About Us
+          </SafeNavLink>
+          <SafeNavLink to="/services" className={linkStyle}>
+            Services
+          </SafeNavLink>
+          <SafeNavLink to="/contact" className={linkStyle}>
+            Contact Us
+          </SafeNavLink>
         </div>
 
         {/* GALLERY DROPDOWN */}
@@ -118,21 +127,21 @@ function Navbar() {
                   : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
               }`}
             >
-              <NavLink 
+              <SafeNavLink 
                 to="/photos" 
                 onClick={() => setDesktopDropdown(false)}
                 className={dropdownLinkStyle}
               >
                 Photos
-              </NavLink>
+              </SafeNavLink>
 
-              <NavLink 
+              <SafeNavLink 
                 to="/videos" 
                 onClick={() => setDesktopDropdown(false)}
                 className={dropdownLinkStyle}
               >
                 Videos
-              </NavLink>
+              </SafeNavLink>
             </div>
           </div>
 
@@ -157,7 +166,7 @@ function Navbar() {
 
       {/* MOBILE MENU */}
       <div
-        className={`fixed right-0 top-[88.8px] h-[calc(100vh-64px)] w-full bg-[#f0b000] z-50 transform transition-transform duration-500 ${
+        className={`fixed right-0 top-[88.8px] h-[calc(100vh-64px)] w-[70%] bg-[#f0b000] z-50 transform transition-transform duration-[1300ms] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -165,10 +174,18 @@ function Navbar() {
 
           {/* LINKS */}
           <div className="flex flex-col space-y-6 mt-6">
-            <NavLink to="/" className={linkStyle} onClick={() => setOpen(false)}>Home</NavLink>
-            <NavLink to="/about" className={linkStyle} onClick={() => setOpen(false)}>About</NavLink>
-            <NavLink to="/services" className={linkStyle} onClick={() => setOpen(false)}>Services</NavLink>
-            <NavLink to="/contact" className={linkStyle} onClick={() => setOpen(false)}>Contact</NavLink>
+            <SafeNavLink to="/" className={linkStyle} onClick={() => setOpen(false)}>
+              Home
+            </SafeNavLink>
+            <SafeNavLink to="/about" className={linkStyle} onClick={() => setOpen(false)}>
+              About
+            </SafeNavLink>
+            <SafeNavLink to="/services" className={linkStyle} onClick={() => setOpen(false)}>
+              Services
+            </SafeNavLink>
+            <SafeNavLink to="/contact" className={linkStyle} onClick={() => setOpen(false)}>
+              Contact
+            </SafeNavLink>
 
             {/* MOBILE GALLERY DROPDOWN */}
             <div ref={mobileDropdownRef}>
@@ -197,7 +214,7 @@ function Navbar() {
                 }`}
               >
                 <div className="flex flex-col space-y-2 border-t-2 border-b-2 border-black py-2 pl-5">
-                  <NavLink 
+                  <SafeNavLink
                     to="/photos" 
                     onClick={() => {
                       setOpen(false)
@@ -206,10 +223,10 @@ function Navbar() {
                     className={dropdownLinkStyle}
                   >
                     Photos
-                  </NavLink>
+                  </SafeNavLink>
 
-                  <NavLink 
-                    to="/videos" 
+                  <SafeNavLink
+                    to="/videos"
                     onClick={() => {
                       setOpen(false)
                       setMobileDropdown(false)
@@ -217,7 +234,7 @@ function Navbar() {
                     className={dropdownLinkStyle}
                   >
                     Videos
-                  </NavLink>
+                  </SafeNavLink>
                 </div>
               </div>
             </div>

@@ -1,12 +1,14 @@
 import { Phone, Mail } from "lucide-react"
 import { FaWhatsapp, FaBroom, FaHome, FaBuilding, FaPumpSoap } from "react-icons/fa"
 import { useNavigate } from "react-router-dom"
+import PageWrapper from "../components/PageWrapper";
 
 function Contact() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
+    <PageWrapper>
+      <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
 
       {/* HEADER */}
       <div className="text-center max-w-3xl mx-auto">
@@ -80,16 +82,16 @@ function Contact() {
   >
     Book Your Preferences Here
   </a>
-
 </div>
-
-    </div>
+</div>
+    </PageWrapper>
   )
 }
 
 function ServiceCard({ icon, title }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md flex flex-col items-center text-center 
+    <PageWrapper>
+      <div className="bg-white p-4 rounded-xl shadow-md flex flex-col items-center text-center 
                     hover:shadow-xl hover:scale-105 transition cursor-pointer">
 
       <div className="text-2xl text-[#f0b000] mb-2">
@@ -99,7 +101,9 @@ function ServiceCard({ icon, title }) {
       <p className="text-sm font-medium">{title}</p>
 
     </div>
+    </PageWrapper>
   )
 }
+
 
 export default Contact
