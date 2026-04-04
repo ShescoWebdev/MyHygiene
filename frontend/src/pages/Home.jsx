@@ -5,7 +5,9 @@ import PageWrapper from '../components/PageWrapper';
 
 function Home() {
 
-  useEffect(() => {
+  const videoRef = useRef(null)
+
+useEffect(() => {
   const video = videoRef.current
   if (!video) return
 
