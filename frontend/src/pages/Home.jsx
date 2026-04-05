@@ -95,7 +95,7 @@ useEffect(() => {
   className="video-bg"
 >
   <source
-    src="https://res.cloudinary.com/detg3ravj/video/upload/v1774993190/vid1_watb2r.mp4"
+    src="/vid1.mp4"
     type="video/mp4"
   />
 </video>
