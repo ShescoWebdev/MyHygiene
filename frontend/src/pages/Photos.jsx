@@ -132,6 +132,12 @@ function Photos() {
           >
             See More Photos
           </button>
+
+          <div className='about3 text-black w-[20rem] m-auto md:w-[75rem] mt-10 p-10 bg-[#f4d171] flex flex-col rounded-3xl'>
+            <h1 className='text-center text-2xl md:text-4xl leading-relaxed text-blue-800 font-bold'>
+              Enjoy our photo gallery!
+            </h1>
+          </div>
         </section>
 
         {/* GRID MODAL */}
