@@ -46,9 +46,9 @@ function Videos() {
   const fullscreenVideoRef = useRef(null)
   const featuredVideoRef = useRef(null)
 
-  useEffect(() => {
-    videoRefs.current = []
-  }, [showVideos])
+  // useEffect(() => {
+  //   videoRefs.current = []
+  // }, [showVideos])
 
   const next = () => {
     setCurrentIndex((prev) => (prev + 1) % videos.length)
@@ -84,7 +84,7 @@ function Videos() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [currentIndex])
 
-  // ✅ Pause all videos
+  // Pause all videos
   const pauseAllVideos = () => {
     videoRefs.current.forEach((vid) => {
       if (vid && typeof vid.pause === "function") {
@@ -95,16 +95,19 @@ function Videos() {
     })
   }
 
-  // ✅ NEW: Pause others when one plays
+  // Pause others when one plays
   const handlePlay = (index) => {
-    videoRefs.current.forEach((vid, i) => {
-      if (vid && i !== index) {
-        try {
-          vid.pause()
-        } catch {}
-      }
-    })
-  }
+  videoRefs.current.forEach((vid, i) => {
+    if (!vid) return
+
+    if (i !== index) {
+      try {
+        vid.pause()
+        vid.currentTime = 0
+      } catch {}
+    }
+  })
+}
 
   useEffect(() => {
     if (showVideos && featuredVideoRef.current) {
@@ -145,6 +148,10 @@ function Videos() {
       document.body.style.overflow = "auto"
     }
   }, [showVideos, currentIndex])
+
+    if (showVideos) {
+    videoRefs.current = []
+  }
 
   return (
     <PageWrapper>
@@ -206,8 +213,8 @@ function Videos() {
                   <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
                     <video
                       ref={(el) => {
-                        if (el) videoRefs.current[index] = el
-                      }}
+                          if (el) videoRefs.current[index] = el
+                        }}
                       src={src}
                       controls
                       preload="metadata"
