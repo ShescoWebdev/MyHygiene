@@ -5,32 +5,24 @@ import Skeleton from "../components/Skeleton"
 function Videos() {
 
   useEffect(() => {
-  const handleFullscreenChange = () => {
-    if (!document.fullscreenElement) {
-      // Reset zoom level
-      const meta = document.querySelector("meta[name=viewport]");
-      if (meta) {
-        meta.setAttribute(
-          "content",
-          "width=device-width, initial-scale=1, maximum-scale=1"
-        );
-      }
-
-      setTimeout(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        const meta = document.querySelector("meta[name=viewport]")
         if (meta) {
-          meta.setAttribute(
-            "content",
-            "width=device-width, initial-scale=1"
-          );
+          meta.setAttribute("content","width=device-width, initial-scale=1, maximum-scale=1")
         }
-      }, 300);
+        setTimeout(() => {
+          if (meta) {
+            meta.setAttribute("content","width=device-width, initial-scale=1")
+          }
+        }, 300)
+      }
     }
-  };
 
-  document.addEventListener("fullscreenchange", handleFullscreenChange);
-  return () =>
-    document.removeEventListener("fullscreenchange", handleFullscreenChange);
-}, []);
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
 
   const [loading, setLoading] = useState(true)
 
@@ -54,7 +46,6 @@ function Videos() {
   const fullscreenVideoRef = useRef(null)
   const featuredVideoRef = useRef(null)
 
-  // Always reset refs properly when videos render
   useEffect(() => {
     videoRefs.current = []
   }, [showVideos])
@@ -93,21 +84,28 @@ function Videos() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [currentIndex])
 
-  // ✅ Safe pause function
+  // ✅ Pause all videos
   const pauseAllVideos = () => {
     videoRefs.current.forEach((vid) => {
       if (vid && typeof vid.pause === "function") {
         try {
           vid.pause()
-          vid.currentTime = 0
-        } catch (err) {
-          console.warn("Video pause error:", err)
-        }
+        } catch {}
       }
     })
   }
 
-  // Pause featured video when opening modal
+  // ✅ NEW: Pause others when one plays
+  const handlePlay = (index) => {
+    videoRefs.current.forEach((vid, i) => {
+      if (vid && i !== index) {
+        try {
+          vid.pause()
+        } catch {}
+      }
+    })
+  }
+
   useEffect(() => {
     if (showVideos && featuredVideoRef.current) {
       try {
@@ -117,7 +115,6 @@ function Videos() {
     }
   }, [showVideos])
 
-  // Handle fullscreen video
   useEffect(() => {
     if (currentIndex !== null) {
       pauseAllVideos()
@@ -137,7 +134,6 @@ function Videos() {
     }
   }, [currentIndex])
 
-  // Prevent background scrolling
   useEffect(() => {
     if (showVideos || currentIndex !== null) {
       document.body.style.overflow = "hidden"
@@ -152,117 +148,104 @@ function Videos() {
 
   return (
     <PageWrapper>
-    <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
+      <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
 
-      {/* HEADER */}
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-semibold mb-4">
-          Our Video Gallery
-        </h1>
-        <p className="text-gray-600 md:text-lg max-w-2xl mx-auto leading-relaxed">
-          Take a look at some of our work in action! And our journey of excellence.
-        </p>
-      </div>
+        {/* HEADER */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-5xl font-semibold mb-4">
+            Our Video Gallery
+          </h1>
+        </div>
 
-      {/* FEATURED VIDEO */}
-      <section className="text-center mb-16">
-        <h2 className="text-2xl md:text-3xl font-semibold flex justify-center w-[200px] m-auto border-b-4 border-[#f0b000] rounded-full mb-5">
-          Videos
-        </h2>
-
+        {/* FEATURED VIDEO */}
+        <section className="text-center mb-16">
           {loading ? (
             <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
-            
-          ) :(
-            
-        <video
-          ref={featuredVideoRef}
-          src={videos[0]}
-          controls
-          preload="metadata"
-          onClick={() => {
-            pauseAllVideos()
-            setCurrentIndex(0)
-          }}
-          className="mx-auto m-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer"
-        />
-      )}
-        
+          ) : (
+            <video
+              ref={featuredVideoRef}
+              src={videos[0]}
+              controls
+              preload="metadata"
+              onClick={() => {
+                pauseAllVideos()
+                setCurrentIndex(0)
+              }}
+              className="mx-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer"
+            />
+          )}
 
-        <button
-          onClick={() => setShowVideos(true)}
-          className="mt-4 px-6 py-2 bg-[#f0b000] rounded-full hover:scale-105 transition"
-        >
-          See More Videos
-        </button>
+          <button
+            onClick={() => setShowVideos(true)}
+            className="mt-4 px-6 py-2 bg-[#f0b000] rounded-full"
+          >
+            See More Videos
+          </button>
+        </section>
 
-        <div className='about3 text-black w-[20rem] m-auto md:w-[75rem] mt-10 p-10 bg-[#f4d171] flex flex-col rounded-3xl'>
-          <h1 className='text-center text-2xl md:text-4xl leading-relaxed text-blue-800 font-bold'>Enjoy our video gallery!</h1>
-        </div>
-      </section>
+        {/* VIDEO MODAL */}
+        {showVideos && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
+            <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
 
-      {/* VIDEO MODAL */}
-      {showVideos && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
-          <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
+              <button
+                onClick={() => setShowVideos(false)}
+                className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl z-50"
+              >
+                ✕
+              </button>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {videos.map((src, index) => (
+                  <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
+                    <video
+                      ref={(el) => {
+                        if (el) videoRefs.current[index] = el
+                      }}
+                      src={src}
+                      controls
+                      preload="metadata"
+                      onPlay={() => handlePlay(index)} // ✅ FIX HERE
+                      onClick={() => setCurrentIndex(index)}
+                      className="w-full h-full object-cover cursor-pointer"
+                    />
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* FULLSCREEN VIEW */}
+        {currentIndex !== null && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
 
             <button
-              onClick={() => setShowVideos(false)}
-              className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl font-bold z-50"
+              onClick={() => setCurrentIndex(null)}
+              className="fixed top-5 right-6 text-white text-3xl z-50"
             >
               ✕
             </button>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {videos.map((src, index) => (
-                <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
-                  <video
-                    ref={(el) => {
-                      if (el) videoRefs.current[index] = el
-                    }}
-                    src={src}
-                    controls
-                    preload="metadata"
-                    onClick={() => setCurrentIndex(index)}
-                    className="w-full h-full object-cover cursor-pointer"
-                  />
-                </div>
-              ))}
-            </div>
+            <button onClick={prev} className="absolute left-5 text-white text-4xl">‹</button>
 
+            <video
+              ref={fullscreenVideoRef}
+              src={videos[currentIndex]}
+              controls
+              autoPlay
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
+            />
+
+            <button onClick={next} className="absolute right-5 text-white text-4xl">›</button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* FULLSCREEN VIEW */}
-      {currentIndex !== null && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-
-          <button
-            onClick={() => setCurrentIndex(null)}
-            className="fixed top-5 right-6 text-white text-3xl font-bold z-50"
-          >
-            ✕
-          </button>
-
-          <button onClick={prev} className="absolute left-5 text-white text-4xl">‹</button>
-
-          <video
-            ref={fullscreenVideoRef}
-            src={videos[currentIndex]}
-            controls
-            autoPlay
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
-          />
-
-          <button onClick={next} className="absolute right-5 text-white text-4xl">›</button>
-        </div>
-      )}
-
-    </div>
+      </div>
     </PageWrapper>
   )
 }

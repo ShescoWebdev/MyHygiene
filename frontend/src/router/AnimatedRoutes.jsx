@@ -37,7 +37,6 @@ useEffect(() => {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           
-          {/* ✅ Routes WITH Layout */}
           <Route
             path="/*"
             element={
@@ -56,7 +55,6 @@ useEffect(() => {
             }
           />
 
-          {/* 🚫 Route WITHOUT Layout */}
           <Route path="/offline" element={<Offline />} />
 
         </Routes>
