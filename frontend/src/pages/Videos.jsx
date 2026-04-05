@@ -211,8 +211,14 @@ function Videos() {
                       src={src}
                       controls
                       preload="metadata"
-                      onPlay={() => handlePlay(index)} // ✅ FIX HERE
-                      onClick={() => setCurrentIndex(index)}
+
+                      onPlay={() => handlePlay(index)}
+
+                      onClick={() => {
+                        handlePlay(index) 
+                        setCurrentIndex(index)
+                      }}
+
                       className="w-full h-full object-cover cursor-pointer"
                     />
                   </div>
