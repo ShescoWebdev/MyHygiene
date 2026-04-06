@@ -16,10 +16,10 @@
     width: 100%;
     overflow: hidden;
     margin-top: -26px;
-    background-image: url(https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png);
+    /* background-image: url(https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993795/Logo3_ueigkn.png);
     background-size: 70px 50px;
     background-position: center;
-    background-repeat: repeat;
+    background-repeat: repeat; */
   }
 
   .home6{
@@ -76,8 +76,4 @@
 
 button{
   border-radius:20px;
-}
-
-::picker-icon {
-  border-radius: 10px;
 }

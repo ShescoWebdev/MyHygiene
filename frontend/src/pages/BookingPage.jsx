@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageWrapper from "../components/PageWrapper"
+import API from "../api";
+// import { useNavigate } from "react-router-dom";
 
 function BookingPage() {
       const [form, setForm] = useState({
@@ -58,29 +60,39 @@ function BookingPage() {
     return `${formattedDate} • ${form.hour}:${form.minute} ${form.period}`;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const combinedItems = [
-      ...form.selectedItems,
-      form.items
-    ].filter(Boolean).join(", ");
+  const combinedItems = [
+    ...form.selectedItems,
+    form.items
+  ].filter(Boolean).join(", ");
 
-    const newBooking = {
-      ...form,
-      items: combinedItems,
-      displayTime: formatDateTime(),
-    };
+  const { data } = await API.post("/bookings", {
+  name: form.name,
+  phone: form.phone,
+  service: form.service,
+  date: form.date,
+  address: form.address,
+  items: combinedItems,
+  instructions: form.instructions,
+});
 
-    if (editIndex !== null) {
-      const updated = [...bookings];
-      updated[editIndex] = newBooking;
-      setBookings(updated);
-      setEditIndex(null);
-    } else {
-      setBookings([newBooking, ...bookings]);
-    }
+  try {
+    const { data } = await API.post("/bookings", {
+      service: form.service,
+      date: form.date,
+      address: form.address,
+    });
 
+    console.log(data);
+
+    alert("Booking saved to database ✅");
+
+    // OPTIONAL: refresh bookings after save
+    fetchBookings();
+
+    // Reset form
     setForm({
       name: "",
       phone: "",
@@ -95,7 +107,11 @@ function BookingPage() {
       minute: "00",
       period: "AM",
     });
-  };
+
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+};
 
   const handleEdit = (index) => {
     const booking = bookings[index];
@@ -103,6 +119,60 @@ function BookingPage() {
     setEditIndex(index);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this booking?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await API.delete(`/bookings/${id}`);
+
+    alert("Booking deleted ✅");
+
+    fetchBookings(); // refresh list
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+};
+
+const fetchBookings = async () => {
+  try {
+    const { data } = await API.get("/bookings/my");
+    setBookings(data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(() => {
+  fetchBookings();
+}, []);
+
+// const navigate = useNavigate();
+// const handleProceed = (booking) => {
+//   navigate("/checkout", { state: booking });
+// };
+
+const [successMsg, setSuccessMsg] = useState("");
+const showSuccessMessage = () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setSuccessMsg(
+    "Thank you for booking with MyHygiene. Your request has been received, and our team will contact you shortly to confirm the details."
+  );
+
+  setTimeout(() => {
+    setSuccessMsg("");
+  }, 10000); // 10 seconds
+};
+
+{successMsg && (
+  <div className="bg-yellow-100 text-yellow-700 p-4 rounded-lg mb-4 text-center font-medium shadow">
+    {successMsg}
+  </div>
+)}
 
   return (
     <PageWrapper>
@@ -126,6 +196,10 @@ function BookingPage() {
         text-sm"
         loading="lazy"
         decoding="async" />
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">For all your payments, we contact you to confirm the details once we receive your request.</h2>
       </div>
 
       {/* FORM */}
@@ -298,17 +372,17 @@ function BookingPage() {
                   </button>
 
                 <button
-                  onClick={() => handleDelete(index)}
+                  onClick={() => handleDelete(b._id)}
                   className="mt-3 text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition"
                 >
                   Delete
                 </button>
 
                 <button
-                  onClick={() => handleEdit(index)}
+                  onClick={() => handleProceed(b)}
                   className="mt-3 text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition"
                 >
-                  Proceed
+                  Save
                 </button>
                 </div>
 
