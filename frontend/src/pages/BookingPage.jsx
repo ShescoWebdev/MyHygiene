@@ -202,7 +202,7 @@ const showSuccessMessage = () => {
       </div>
 
       <div>
-        <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-11.5px] md:mt-[-12px] lg:mx-20px] lg:mt-[-12px] xl:mx-[53.7px] xl:mt-[-12px]">
+        <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-10px] md:mt-[-12px] lg:mx-20px] lg:mt-[-12px] xl:mx-[53.7px] xl:mt-[-12px]">
           <h2 className="text-[18px] font-bold text-gray-800 mb-4">For all your payments, we will contact you to confirm the details once we receive your request. So do well to drop your contact information, and do well to be available for our call.</h2>
         </marquee>
       </div>
