@@ -41,7 +41,28 @@ export const createBooking = async (req, res) => {
   res.json({ message: "Booking removed" });
 };
 
-export const getAllBookings = async (req, res) => {
-  const bookings = await Booking.find().sort({ createdAt: -1 });
-  res.json(bookings);
+// export const getAllBookings = async (req, res) => {
+//   const bookings = await Booking.find().sort({ createdAt: -1 });
+//   res.json(bookings);
+// };
+
+// Update booking status (Admin)
+export const updateBookingStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    booking.status = status;
+    await booking.save();
+
+    res.json({ message: "Status updated", booking });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating status" });
+  }
 };

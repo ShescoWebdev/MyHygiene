@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
 // Register
 export const registerUser = async (req, res) => {
@@ -43,5 +44,21 @@ export const loginUser = async (req, res) => {
     });
   } else {
     res.status(401).json({ message: "Invalid email or password" });
+  }
+};
+
+export const protect = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: "No token" });
+  }
+
+  try {
+    const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+    req.user = decoded; // contains id + role
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
   }
 };
