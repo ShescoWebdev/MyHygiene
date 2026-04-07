@@ -204,7 +204,7 @@ const showSuccessMessage = () => {
 
       <div>
         <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-4px] md:mt-[-5px] lg:mx-20px] lg:mt-[-5px] xl:mx-[53.7px] xl:mt-[-5px]">
-          <h2 className="text-[18px] font-bold text-gray-800 mb-4">For all your payments, we will contact you to confirm the details once we receive your request. So do well to drop your contact information, and be available for our call. For more information, contact us on +234 814 536 4748.</h2>
+          <h2 className="text-[18px] font-bold text-gray-800 mb-4">For all your payments, we will contact you to confirm the details once we receive your request. So do well to drop your contact information and be available for our call. For more information, contact us on +234 814 536 4748.</h2>
         </marquee>
       </div>
 
