@@ -93,7 +93,7 @@ function About() {
             decoding='async'
              />
               Our Commitment</h1>
-            <p className='text-xs md:text-xl leading-relaxed'>We understand that cleanliness <br /> goes beyond appearance—it affects health, comfort, and productivity. <br /><br /> That’s why we provide reliable and detailed services designed to keep your environment and fabrics fresh, br safe, and spotless. <br /><br />
+            <p className='text-xs md:text-xl leading-relaxed'>We understand that cleanliness <br /> goes beyond appearance—it affects health, comfort, and productivity. <br /><br /> That’s why we provide reliable and detailed services designed to keep your environment and fabrics fresh, safe, and spotless. <br /><br />
             Our team is professional, dedicated, <br /> and focused on delivering excellence in every service. <br />
             We don’t just clean—we create healthier living spaces.</p>
         </div>
