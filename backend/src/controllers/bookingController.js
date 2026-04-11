@@ -8,10 +8,6 @@ export const createBooking = async (req, res) => {
   try {
     const { name, phone, service, date, address, items, instructions } = req.body;
 
-    export const createBooking = async (req, res) => {
-  try {
-    const { name, phone, service, date, address, items, instructions } = req.body;
-
     console.log("Incoming data:", req.body);
 
     const booking = await Booking.create({
