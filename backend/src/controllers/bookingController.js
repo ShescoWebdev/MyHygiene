@@ -8,6 +8,12 @@ export const createBooking = async (req, res) => {
   try {
     const { name, phone, service, date, address, items, instructions } = req.body;
 
+    export const createBooking = async (req, res) => {
+  try {
+    const { name, phone, service, date, address, items, instructions } = req.body;
+
+    console.log("Incoming data:", req.body);
+
     const booking = await Booking.create({
       user: req.user?._id || null,
       name,
@@ -19,13 +25,16 @@ export const createBooking = async (req, res) => {
       instructions,
     });
 
-    // AFTER creating booking
+    console.log("Booking created:", booking);
+
+    // TEMPORARILY DISABLE
     // await sendEmail(booking);
     // await sendWhatsApp(booking);
 
     res.status(201).json(booking);
+
   } catch (err) {
-    console.error(err);
+    console.error("ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 };
