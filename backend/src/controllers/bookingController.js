@@ -41,11 +41,6 @@ export const createBooking = async (req, res) => {
   res.json({ message: "Booking removed" });
 };
 
-// export const getAllBookings = async (req, res) => {
-//   const bookings = await Booking.find().sort({ createdAt: -1 });
-//   res.json(bookings);
-// };
-
 // Update booking status (Admin)
 export const updateBookingStatus = async (req, res) => {
   const { id } = req.params;
