@@ -8,10 +8,8 @@ export const createBooking = async (req, res) => {
   try {
     const { name, phone, email, service, date, address, items, instructions } = req.body;
 
-    console.log("Incoming data:", req.body);
-
     const booking = await Booking.create({
-      user: req.user?._id || null,
+      user: req.user._id,
       name,
       phone,
       email,
@@ -22,22 +20,20 @@ export const createBooking = async (req, res) => {
       instructions,
     });
 
-    console.log("Booking created:", booking);
-
+    // AFTER creating booking
     await sendEmail(booking);
     await sendWhatsApp(booking);
 
     res.status(201).json(booking);
-
   } catch (err) {
-    console.error("ERROR:", err);
-    res.status(500).json({ message: err.message });
+    console.error("ERROR:", err.response?.data || err.message);
+    alert(err.response?.data?.message || "Something went wrong ❌");
   }
 };
 
   // Get user bookings
   export const getMyBookings = async (req, res) => {
-  const bookings = await Booking.find({ user: req.user?._id || null }).sort({ createdAt: -1 });
+  const bookings = await Booking.find({ user: req.user._id }).sort({ createdAt: -1 });
   res.json(bookings);
   };
 
