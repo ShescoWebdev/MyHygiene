@@ -20,19 +20,19 @@ export const createBooking = async (req, res) => {
     });
 
     // AFTER creating booking
-    await sendEmail(booking);
-    await sendWhatsApp(booking);
+    // await sendEmail(booking);
+    // await sendWhatsApp(booking);
 
     res.status(201).json(booking);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Booking failed" });
+    res.status(500).json({ message: err.message });
   }
 };
 
   // Get user bookings
   export const getMyBookings = async (req, res) => {
-  const bookings = await Booking.find({ user: req.user._id });
+  const bookings = await Booking.find({ user: req.user?._id || null }).sort({ createdAt: -1 });
   res.json(bookings);
   };
 
