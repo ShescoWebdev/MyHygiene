@@ -9,7 +9,7 @@ export const createBooking = async (req, res) => {
     const { name, phone, service, date, address, items, instructions } = req.body;
 
     const booking = await Booking.create({
-      user: req.user._id,
+      user: req.user?._id || null,
       name,
       phone,
       service,
