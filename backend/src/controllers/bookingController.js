@@ -24,9 +24,8 @@ export const createBooking = async (req, res) => {
 
     console.log("Booking created:", booking);
 
-    // TEMPORARILY DISABLE
-    // await sendEmail(booking);
-    // await sendWhatsApp(booking);
+    await sendEmail(booking);
+    await sendWhatsApp(booking);
 
     res.status(201).json(booking);
 

@@ -75,7 +75,7 @@ function BookingPage() {
     const { data } = await API.post("/bookings", {
       name: form.name,
       phone: form.phone,
-      email: form.email, // 🔥 IMPORTANT (you were missing this before)
+      email: form.email,
       service: form.service,
       date: form.date,
       address: form.address,
