@@ -6,7 +6,7 @@ import { sendWhatsApp } from "../services/whatsappService.js";
 // Create booking
 export const createBooking = async (req, res) => {
   try {
-    const { name, phone, service, date, address, items, instructions } = req.body;
+    const { name, phone, email, service, date, address, items, instructions } = req.body;
 
     console.log("Incoming data:", req.body);
 
@@ -14,6 +14,7 @@ export const createBooking = async (req, res) => {
       user: req.user?._id || null,
       name,
       phone,
+      email,
       service,
       date,
       address,
