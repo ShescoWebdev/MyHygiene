@@ -5,23 +5,30 @@ import { sendWhatsApp } from "../services/whatsappService.js";
 
 // Create booking
 export const createBooking = async (req, res) => {
+  try {
+    const { name, phone, service, date, address, items, instructions } = req.body;
+
+    const booking = await Booking.create({
+      user: req.user._id,
+      name,
+      phone,
+      service,
+      date,
+      address,
+      items,
+      instructions,
+    });
+
+    // AFTER creating booking
     await sendEmail(booking);
     await sendWhatsApp(booking);
-  const { name, phone, service, date, address, items, instructions } = req.body;
 
-  const booking = await Booking.create({
-  user: req.user._id,
-  name,
-  phone,
-  service,
-  date,
-  address,
-  items,
-  instructions,
-   });
-
-  res.status(201).json(booking);
-  };
+    res.status(201).json(booking);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Booking failed" });
+  }
+};
 
   // Get user bookings
   export const getMyBookings = async (req, res) => {

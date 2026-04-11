@@ -60,6 +60,7 @@ function BookingPage() {
     return `${formattedDate} • ${form.hour}:${form.minute} ${form.period}`;
   };
 
+  const [loading, setLoading] = useState(false);
   const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -68,31 +69,22 @@ function BookingPage() {
     form.items
   ].filter(Boolean).join(", ");
 
-  const { data } = await API.post("/bookings", {
-  name: form.name,
-  phone: form.phone,
-  service: form.service,
-  date: form.date,
-  address: form.address,
-  items: combinedItems,
-  instructions: form.instructions,
-});
-
   try {
     const { data } = await API.post("/bookings", {
+      name: form.name,
+      phone: form.phone,
       service: form.service,
       date: form.date,
       address: form.address,
+      items: combinedItems,
+      instructions: form.instructions,
     });
 
     console.log(data);
 
-    alert("Booking saved to database ✅");
-
-    // OPTIONAL: refresh bookings after save
+    showSuccessMessage();
     fetchBookings();
 
-    // Reset form
     setForm({
       name: "",
       phone: "",
@@ -110,7 +102,9 @@ function BookingPage() {
 
   } catch (err) {
     console.error(err.response?.data || err.message);
-  }
+  } finally {
+  setLoading(false);
+}
 };
 
   const handleEdit = (index) => {
@@ -173,6 +167,7 @@ const showSuccessMessage = () => {
     {successMsg}
   </div>
 )}
+
 
   return (
     <PageWrapper>
@@ -326,9 +321,18 @@ const showSuccessMessage = () => {
             </p>
           )}
 
-          <button type="submit"
-            className="w-full bg-[#f0b000] text-black py-3 rounded-lg font-semibold hover:bg-[#d59c02] transition">
-            {editIndex !== null ? "Update Booking" : "Save Booking"}
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-3 rounded-lg font-semibold transition
+              ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#f0b000] hover:bg-[#d59c02]"}
+            `}
+          >
+            {loading ? 
+            <span className="flex items-center justify-center gap-2">
+            <span className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full"></span>
+            Saving...
+          </span> : (editIndex !== null ? "Update Booking" : "Save Booking")}
           </button>
 
         </form>
