@@ -2,7 +2,7 @@ import Booking from "../models/Booking.js";
 import sendEmail from "../services/emailService.js";
 import { sendWhatsApp } from "../services/whatsappService.js";
 
-// Create booking (FINAL SAVE ONLY)
+// Create booking
 export const createBooking = async (req, res) => {
   try {
     const {
@@ -17,7 +17,10 @@ export const createBooking = async (req, res) => {
     } = req.body;
 
     const booking = await Booking.create({
-      user: req.user._id,
+      // If logged in, attach user ID
+      // If guest, save as null
+      user: req.user ? req.user._id : null,
+
       name,
       phone,
       email,
@@ -28,11 +31,16 @@ export const createBooking = async (req, res) => {
       instructions,
     });
 
-    // send notifications AFTER save
-    await sendEmail(booking);
-    await sendWhatsApp(booking);
+    // Send notifications AFTER save
+    try {
+      await sendEmail(booking);
+      await sendWhatsApp(booking);
+    } catch (notifyError) {
+      console.error("Notification Error:", notifyError.message);
+    }
 
     res.status(201).json(booking);
+
   } catch (err) {
     console.error("ERROR:", err.message);
 
@@ -41,7 +49,6 @@ export const createBooking = async (req, res) => {
     });
   }
 };
-
 // Get user bookings
 export const getMyBookings = async (req, res) => {
   const bookings = await Booking.find({ user: req.user._id }).sort({

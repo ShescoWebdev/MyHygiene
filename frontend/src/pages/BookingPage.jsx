@@ -150,10 +150,14 @@ function BookingPage() {
   }, []);
 
   const handleProceed = async (booking, index) => {
-    setLoadingIndex(index); 
-    
-    try {
-      const { data } = await API.post("/bookings", {
+  setLoadingIndex(index);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const { data } = await API.post(
+      "/bookings",
+      {
         name: booking.name,
         phone: booking.phone,
         email: booking.email,
@@ -162,30 +166,37 @@ function BookingPage() {
         address: booking.address,
         items: booking.items,
         instructions: booking.instructions,
-      });
+      },
+      {
+        headers: token
+          ? { Authorization: `Bearer ${token}` }
+          : {},
+      }
+    );
 
-      console.log("SUCCESS:", data);
+    console.log("SUCCESS:", data);
 
-      showSuccessMessage();
-      
-      const updatedBookings = bookings.filter((_, i) => i !== index);
-      setBookings(updatedBookings);
+    showSuccessMessage();
 
-    } catch (err) {
-      console.error("ERROR:", err.response?.data || err.message);
-      
-      // Alert Error Message
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: err.response?.data?.message || "Something went wrong! Please try again.",
-        confirmButtonColor: "#f0b000",
-      });
-    } finally {
-      setLoadingIndex(null); 
-    }
-  };
+    const updatedBookings = bookings.filter((_, i) => i !== index);
+    setBookings(updatedBookings);
 
+  } catch (err) {
+    console.error("ERROR:", err.response?.data || err.message);
+
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text:
+        err.response?.data?.message ||
+        "Something went wrong! Please try again.",
+      confirmButtonColor: "#f0b000",
+    });
+
+  } finally {
+    setLoadingIndex(null);
+  }
+};
   const showSuccessMessage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setSuccessMsg(
