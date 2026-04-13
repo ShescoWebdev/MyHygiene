@@ -5,14 +5,14 @@ const sendEmail = async (booking) => {
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // use App Password
+      pass: process.env.EMAIL_PASS,
     },
   });
 
   // Email to team
   await transporter.sendMail({
     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_USER, // your team
+    to: process.env.EMAIL_USER,
     subject: "🧹 New Booking Received",
     html: `
       <div style="font-family: Arial, sans-serif; line-height:1.6;">

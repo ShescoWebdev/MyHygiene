@@ -12,7 +12,7 @@ import { getAllBookings } from "../controllers/adminController.js";
 
 const router = express.Router();
 
-router.post("/",  createBooking);
+router.post("/", protect, createBooking);
 router.get("/my", protect, getMyBookings);
 router.delete("/:id", protect, deleteBooking);
 router.get("/", protect, getAllBookings); // Admin route to get all bookings
