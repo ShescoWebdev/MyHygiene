@@ -12,7 +12,6 @@ import { getAllBookings } from "../controllers/adminController.js";
 
 const router = express.Router();
 
-router.post("/", protect, createBooking);
 router.post("/", optionalProtect, createBooking);
 router.get("/my", protect, getMyBookings);
 router.delete("/:id", protect, deleteBooking);
