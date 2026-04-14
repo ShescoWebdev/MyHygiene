@@ -226,7 +226,7 @@ function BookingPage() {
       <div className="min-h-screen bg-gray-50 py-10 px-4">
 
         {successMsg && (
-          <div className="bg-yellow-100 text-black p-4 rounded-lg mb-4 text-center font-medium shadow">
+          <div className="bg-yellow-300 text-black p-4 rounded-lg mb-4 text-center font-medium shadow">
             {successMsg}
           </div>
         )}
