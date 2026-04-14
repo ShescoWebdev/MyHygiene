@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
 import API from "../api";
 import Swal from "sweetalert2";
+import Skeleton from "../components/Skeleton";
 
 function BookingPage() {
   const [form, setForm] = useState({
@@ -24,8 +25,17 @@ function BookingPage() {
   
   const [loadingIndex, setLoadingIndex] = useState(null); 
   const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space"];
+  // Set up our references for smooth scrolling
+  const formRef = useRef(null);
+  const bookingsRef = useRef(null);
+
+  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement"];
+
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 5000)
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -48,18 +58,14 @@ function BookingPage() {
 
   const formatDateTime = () => {
     if (!form.date) return "";
-
     const dateObj = new Date(form.date);
-
     const options = {
       weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
     };
-
     const formattedDate = dateObj.toLocaleDateString("en-US", options);
-
     return `${formattedDate} • ${form.hour}:${form.minute} ${form.period}`;
   };
 
@@ -100,16 +106,24 @@ function BookingPage() {
       minute: "00",
       period: "AM",
     });
+
+    // Scroll down to the bookings area after saving to preview
+    setTimeout(() => {
+      bookingsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleEdit = (index) => {
     const booking = bookings[index];
     setForm({ ...booking, selectedItems: booking.selectedItems || [] });
     setEditIndex(index);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    // Scroll directly back up to the form
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
   
-  // Alert Confirmation
   const handleDelete = (index) => {
     Swal.fire({
       title: "Are you sure?",
@@ -124,7 +138,6 @@ function BookingPage() {
         const updatedBookings = bookings.filter((_, i) => i !== index);
         setBookings(updatedBookings);
         
-        // success pop-up after deleting
         Swal.fire({
           title: "Deleted!",
           text: "Your booking has been removed.",
@@ -150,53 +163,53 @@ function BookingPage() {
   }, []);
 
   const handleProceed = async (booking, index) => {
-  setLoadingIndex(index);
+    setLoadingIndex(index);
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const { data } = await API.post(
-      "/bookings",
-      {
-        name: booking.name,
-        phone: booking.phone,
-        email: booking.email,
-        service: booking.service,
-        date: booking.date,
-        address: booking.address,
-        items: booking.items,
-        instructions: booking.instructions,
-      },
-      {
-        headers: token
-          ? { Authorization: `Bearer ${token}` }
-          : {},
-      }
-    );
+      const { data } = await API.post(
+        "/bookings",
+        {
+          name: booking.name,
+          phone: booking.phone,
+          email: booking.email,
+          service: booking.service,
+          date: booking.date,
+          address: booking.address,
+          items: booking.items,
+          instructions: booking.instructions,
+        },
+        {
+          headers: token
+            ? { Authorization: `Bearer ${token}` }
+            : {},
+        }
+      );
 
-    console.log("SUCCESS:", data);
+      console.log("SUCCESS:", data);
+      showSuccessMessage();
 
-    showSuccessMessage();
+      const updatedBookings = bookings.filter((_, i) => i !== index);
+      setBookings(updatedBookings);
 
-    const updatedBookings = bookings.filter((_, i) => i !== index);
-    setBookings(updatedBookings);
+    } catch (err) {
+      console.error("ERROR:", err.response?.data || err.message);
 
-  } catch (err) {
-    console.error("ERROR:", err.response?.data || err.message);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text:
+          err.response?.data?.message ||
+          "Something went wrong! Please try again.",
+        confirmButtonColor: "#f0b000",
+      });
 
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text:
-        err.response?.data?.message ||
-        "Something went wrong! Please try again.",
-      confirmButtonColor: "#f0b000",
-    });
+    } finally {
+      setLoadingIndex(null);
+    }
+  };
 
-  } finally {
-    setLoadingIndex(null);
-  }
-};
   const showSuccessMessage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setSuccessMsg(
@@ -205,16 +218,15 @@ function BookingPage() {
 
     setTimeout(() => {
       setSuccessMsg("");
-    }, 10000); 
+    }, 20000); 
   };
-
 
   return (
     <PageWrapper>
       <div className="min-h-screen bg-gray-50 py-10 px-4">
 
         {successMsg && (
-          <div className="bg-yellow-100 text-yellow-700 p-4 rounded-lg mb-4 text-center font-medium shadow">
+          <div className="bg-yellow-100 text-black p-4 rounded-lg mb-4 text-center font-medium shadow">
             {successMsg}
           </div>
         )}
@@ -228,6 +240,10 @@ function BookingPage() {
           Browse our available services in the pricing table below, then select your preferred date and time to schedule your booking.
         </p>
 
+        {loading ? (
+        <Skeleton className="w-[22.5rem] h-[30rem] md:w-[90vw] md:h-[600vh] mt-10 m-auto rounded-2xl" />
+      ) : (
+        <div>
         <img 
         src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993815/Pricing_g9poup.jpg" 
         alt="Pricing List" 
@@ -241,7 +257,10 @@ function BookingPage() {
         "
         loading="lazy"
         decoding="async" />
+        </div>
+        )}
       </div>
+      
 
       <div>
         <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-4px] md:mt-[-5px] lg:mx-20px] lg:mt-[-5px] xl:mx-[53.7px] xl:mt-[-5px]">
@@ -249,8 +268,8 @@ function BookingPage() {
         </marquee>
       </div>
 
-      {/* FORM */}
-      <div className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-32 rounded-2xl p-6 border-t-4 border-[#f0b000]">
+      {/* FORM: Added formRef here */}
+      <div ref={formRef} className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-32 rounded-2xl p-6 border-t-4 border-[#f0b000]">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Book a Service</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -377,8 +396,8 @@ function BookingPage() {
         </form>
       </div>
 
-      {/* BOOKINGS */}
-      <div className="max-w-2xl mx-auto mt-8">
+      {/* BOOKINGS: Added bookingsRef here */}
+      <div ref={bookingsRef} className="max-w-2xl mx-auto mt-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Bookings</h2>
 
         {bookings.length === 0 ? (
