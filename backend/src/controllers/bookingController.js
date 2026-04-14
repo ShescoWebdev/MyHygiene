@@ -2,28 +2,19 @@ import Booking from "../models/Booking.js";
 import sendEmail from "../services/emailService.js";
 import { sendWhatsApp } from "../services/whatsappService.js";
 
-// Create booking
 export const createBooking = async (req, res) => {
   try {
-    const {
-      name,
-      phone,
-      email,
-      service,
-      date,
-      address,
-      items,
-      instructions,
-    } = req.body;
+    const { name, phone, email, service, date, address, items, instructions } = req.body;
+
+    // 1. SANITIZE INPUTS (Defeats the sneaky mobile keyboard spaces!)
+    const cleanEmail = email ? email.trim().toLowerCase() : "";
+    const cleanPhone = phone ? phone.trim() : "";
 
     const booking = await Booking.create({
-      // If logged in, attach user ID
-      // If guest, save as null
       user: req.user ? req.user._id : null,
-
-      name,
-      phone,
-      email,
+      name: name.trim(),
+      phone: cleanPhone,
+      email: cleanEmail,
       service,
       date,
       address,
@@ -31,24 +22,31 @@ export const createBooking = async (req, res) => {
       instructions,
     });
 
-    // Send notifications AFTER save
-    try {
-      await sendEmail(booking);
-      await sendWhatsApp(booking);
-    } catch (notifyError) {
-      console.error("Notification Error:", notifyError.message);
-    }
+    // 2. RUN NOTIFICATIONS INDEPENDENTLY (Using Promise.allSettled)
+    // This ensures that if WhatsApp fails, Email still sends, and vice versa!
+    Promise.allSettled([
+      sendEmail(booking),
+      sendWhatsApp(booking)
+    ]).then(results => {
+      // This will quietly log any errors in your server without crashing the app
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          const type = index === 0 ? "Email" : "WhatsApp";
+          console.error(`🚨 ${type} Notification Failed:`, result.reason);
+        }
+      });
+    });
 
+    // 3. IMMEDIATELY RESPOND TO FRONTEND (Makes the app feel super fast)
     res.status(201).json(booking);
 
   } catch (err) {
-    console.error("ERROR:", err.message);
-
-    res.status(500).json({
-      message: "Failed to create booking",
-    });
+    console.error("ERROR CREATING BOOKING:", err.message);
+    res.status(500).json({ message: "Failed to create booking" });
   }
 };
+
+
 // Get user bookings
 export const getMyBookings = async (req, res) => {
   const bookings = await Booking.find({ user: req.user._id }).sort({
