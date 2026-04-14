@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // IMPORTED useNavigate
 import PageWrapper from "../components/PageWrapper";
 import API from "../api";
 import Swal from "sweetalert2";
@@ -24,8 +25,10 @@ function BookingPage() {
   const [editIndex, setEditIndex] = useState(null);
   
   const [loadingIndex, setLoadingIndex] = useState(null); 
-  const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Initialize useNavigate
+  const navigate = useNavigate();
 
   // Set up our references for smooth scrolling
   const formRef = useRef(null);
@@ -188,7 +191,9 @@ function BookingPage() {
       );
 
       console.log("SUCCESS:", data);
-      showSuccessMessage();
+      
+      // Navigate to the Success Page
+      navigate("/booking-success");
 
       const updatedBookings = bookings.filter((_, i) => i !== index);
       setBookings(updatedBookings);
@@ -210,26 +215,9 @@ function BookingPage() {
     }
   };
 
-  const showSuccessMessage = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    setSuccessMsg(
-      "Thank you for booking with MyHygiene. Your request has been received, and our team will contact you shortly to confirm the details."
-    );
-
-    setTimeout(() => {
-      setSuccessMsg("");
-    }, 20000); 
-  };
-
   return (
     <PageWrapper>
       <div className="min-h-screen bg-gray-50 py-10 px-4">
-
-        {successMsg && (
-          <div className="bg-yellow-500 text-black p-4 rounded-lg mb-4 text-center font-medium shadow">
-            {successMsg}
-          </div>
-        )}
 
       {/* HERO */}
       <div>
