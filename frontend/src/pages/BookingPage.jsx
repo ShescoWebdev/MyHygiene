@@ -193,7 +193,7 @@ function BookingPage() {
       console.log("SUCCESS:", data);
       
       // Navigate to the Success Page
-      navigate("/booking-success");
+      navigate("/booking-success", { state: { bookingSuccessful: true } });
 
       const updatedBookings = bookings.filter((_, i) => i !== index);
       setBookings(updatedBookings);

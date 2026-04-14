@@ -6,17 +6,26 @@ function Offline() {
   const [Reconnecting, setReconnecting] = useState(false)
   const [showToast, setShowToast] = useState(false)
 
+  // Check if users are actually online when they try to load this page
+  useEffect(() => {
+    if (navigator.onLine) {
+      // If users have internet, kick them out
+      const lastPage = localStorage.getItem("lastPage") || "/"
+      // 'replace: true' ensures users can't click the back button to return here
+      navigate(lastPage, { replace: true }) 
+    }
+  }, [navigate])
+
+  //Wait for them to regain connection if they are offline
   useEffect(() => {
     const handleOnline = () => {
       setReconnecting(true)
-
-      // Show toast
       setShowToast(true)
 
       // Wait a bit before redirecting
       setTimeout(() => {
         const lastPage = localStorage.getItem("lastPage") || "/"
-        navigate(lastPage)
+        navigate(lastPage, { replace: true })
       }, 6000)
     }
 
