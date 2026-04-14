@@ -7,7 +7,7 @@ const client = twilio(
 
 export const sendWhatsApp = async (booking) => {
   await client.messages.create({
-    from: "whatsapp:+14155238886", // Twilio sandbox
+    from: "whatsapp:+16626492404", // Twilio sandbox
     to: "whatsapp:+2348145364748", // team number (Gladys. For the team)
     body: `🧹 New Booking:
 Name: ${booking.name}

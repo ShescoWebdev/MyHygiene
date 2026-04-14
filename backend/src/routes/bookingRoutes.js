@@ -15,7 +15,7 @@ const router = express.Router();
 router.post("/", optionalProtect, createBooking);
 router.get("/my", protect, getMyBookings);
 router.delete("/:id", protect, deleteBooking);
-router.get("/", protect, getAllBookings); // Admin route to get all bookings
+router.get("/", protect, isAdmin, getAllBookings); // Admin route to get all bookings
 router.put("/:id/status", protect, isAdmin, updateBookingStatus);
 
 export default router;
