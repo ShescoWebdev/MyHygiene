@@ -34,7 +34,7 @@ function BookingPage() {
   const formRef = useRef(null);
   const bookingsRef = useRef(null);
 
-  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement"];
+  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement", "Suits", "Shirts", "Skirts", "Trousers", "Bedspreads", "Others (see other items field below)"];
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 5000)
@@ -287,7 +287,7 @@ function BookingPage() {
 
           {/* QUICK SELECT */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Select areas to clean:</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">Select areas and items to clean (optional, tick all that applies):</p>
             <div className="flex flex-wrap gap-2">
               {quickItems.map((item) => (
                 <label key={item} className="flex items-center gap-2 cursor-pointer">
@@ -315,7 +315,7 @@ function BookingPage() {
           {/* CUSTOM ITEMS */}
           <textarea
             name="items"
-            placeholder="Other items (e.g., 3-bedroom flat, staircase)"
+            placeholder="Other areas or items (e.g., 3-bedroom flat, staircase, bags, caps)"
             value={form.items}
             onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none"
@@ -325,7 +325,7 @@ function BookingPage() {
           {/* INSTRUCTIONS */}
           <textarea
             name="instructions"
-            placeholder="Additional instructions (e.g., red gate, call before arrival)"
+            placeholder="Additional instructions (e.g., red gate, call before arrival, opposite the church)"
             value={form.instructions}
             onChange={handleChange}
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none"
