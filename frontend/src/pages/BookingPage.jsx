@@ -400,7 +400,7 @@ function BookingPage() {
           
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-semibold text-blue-600">{b.name}</h3>
-                 <b className="text-gray-500 mr-10">|</b>
+                 <b className="text-gray-500 mr-7">|</b>
                   <span className="text-sm text-blue-600 font-medium">{b.displayTime}</span>
                 </div>
                 <hr />
