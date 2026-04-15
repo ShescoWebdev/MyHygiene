@@ -179,6 +179,7 @@ function BookingPage() {
           email: booking.email,
           service: booking.service,
           date: booking.date,
+          time: `${booking.hour}:${booking.minute} ${booking.period}`,
           address: booking.address,
           items: booking.items,
           instructions: booking.instructions,
