@@ -398,9 +398,9 @@ function BookingPage() {
             {bookings.map((b, index) => (
               <div key={index} className="p-4 rounded-xl border-t-4 border-b-4 border-yellow-500 shadow hover:shadow-md transition bg-white">
           
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center mb-2">
                   <h3 className="font-semibold text-blue-600">{b.name}</h3>
-                  <hr /> <b className="text-gray-500 ml-10">|</b>
+                 <b className="text-gray-500 ml-10">|</b>
                   <span className="text-sm text-blue-600 font-medium">{b.displayTime}</span>
                 </div>
                 <hr />
