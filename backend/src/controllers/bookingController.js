@@ -4,9 +4,9 @@ import { sendWhatsApp } from "../services/whatsappService.js";
 
 export const createBooking = async (req, res) => {
   try {
-    const { name, phone, email, service, date, address, items, instructions } = req.body;
+    const { name, phone, email, service, date, time, address, items, instructions } = req.body;
 
-    // 1. SANITIZE INPUTS (Defeats the sneaky mobile keyboard spaces!)
+    //  SANITIZE INPUTS (Defeats the sneaky mobile keyboard spaces!)
     const cleanEmail = email ? email.trim().toLowerCase() : "";
     const cleanPhone = phone ? phone.trim() : "";
 
@@ -17,18 +17,19 @@ export const createBooking = async (req, res) => {
       email: cleanEmail,
       service,
       date,
+      time,
       address,
       items,
       instructions,
     });
 
-    // 2. RUN NOTIFICATIONS INDEPENDENTLY (Using Promise.allSettled)
-    // This ensures that if WhatsApp fails, Email still sends, and vice versa!
+    //  RUN NOTIFICATIONS INDEPENDENTLY (Using Promise.allSettled)
+    // This ensures that if WhatsApp fails, Email still sends, and vice versa
     Promise.allSettled([
       sendEmail(booking),
       sendWhatsApp(booking)
     ]).then(results => {
-      // This will quietly log any errors in your server without crashing the app
+      // This will quietly log any errors in server without crashing the app
       results.forEach((result, index) => {
         if (result.status === "rejected") {
           const type = index === 0 ? "Email" : "WhatsApp";
@@ -37,7 +38,7 @@ export const createBooking = async (req, res) => {
       });
     });
 
-    // 3. IMMEDIATELY RESPOND TO FRONTEND (Makes the app feel super fast)
+    // IMMEDIATELY RESPOND TO FRONTEND (Makes the app feel super fast)
     res.status(201).json(booking);
 
   } catch (err) {
