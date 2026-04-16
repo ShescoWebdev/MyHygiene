@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api";
 
-function AdminBookings() {
+function AdminPage() {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ function AdminBookings() {
   }, []);
 
   return (
-    <div className="p-6">
+    <div className="p-6 mt-8 text-center">
       <h2 className="text-2xl font-bold mb-4">All Bookings</h2>
 
       {bookings.map((b) => (
@@ -22,6 +22,8 @@ function AdminBookings() {
           <p><strong>{b.name}</strong></p>
           <p>{b.service}</p>
           <p>{b.address}</p>
+          <p>{b.date}</p>
+          <p>{b.time}</p>
           <p>{b.status}</p>
         </div>
       ))}
@@ -29,4 +31,4 @@ function AdminBookings() {
   );
 }
 
-export default AdminBookings;
+export default AdminPage;

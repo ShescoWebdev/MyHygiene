@@ -39,7 +39,7 @@ function Footer() {
   }, []);
 
   return (
-    <footer className="bg-gray-900 text-white px-6 py-10">
+    <footer className="bg-gray-900 text-white px-6 py-10 md:relative md:bottom-[-100px] w-full">
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
 
@@ -55,6 +55,11 @@ function Footer() {
           <p className="text-sm text-gray-400">
             Creating clean, fresh, and healthy living spaces.
           </p>
+          <hr className="border-gray-700"/>
+          <NavLink to="/admin" className="text-gray-400 hover:text-yellow-400 transition flex flex-col">
+            MyHygiene Dashboard
+        </NavLink>
+        <hr className="border-gray-700"/>
         </div>
 
         {/* CONTACT */}
