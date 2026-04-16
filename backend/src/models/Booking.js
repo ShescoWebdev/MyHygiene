@@ -32,8 +32,7 @@ const bookingSchema = new mongoose.Schema(
         required: true 
     },
     time: { 
-        type: String,
-        required: true
+        type: String
      },
     address: { 
         type: String, 
