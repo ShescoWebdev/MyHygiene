@@ -42,10 +42,10 @@ const sendEmail = async (booking) => {
         <p><strong>Name:</strong> ${booking.name}</p>
         <p><strong>Phone:</strong> ${booking.phone}</p>
         <p><strong>Email:</strong> ${booking.email}</p>
-        <p><strong>Service:</strong> ${booking.service}</p>
         <p><strong>Address:</strong> ${booking.address}</p>
         <p><strong>Date:</strong> ${formattedDate}</p>
         <p><strong>Time:</strong> ${timeStr}</p>
+        <p><strong>Service:</strong> ${booking.service}</p>
         <p><strong>Items:</strong> ${booking.items}</p>
         <p><strong>Instructions:</strong> ${booking.instructions}</p>
 
