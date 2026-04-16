@@ -39,7 +39,7 @@ function Footer() {
   }, []);
 
   return (
-    <footer className="bg-gray-900 text-white px-6 py-10 md:relative md:bottom-[-100px] w-full">
+    <footer className="bg-gray-900 text-white px-6 py-10 w-full">
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
 

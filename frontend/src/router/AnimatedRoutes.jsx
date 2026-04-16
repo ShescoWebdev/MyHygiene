@@ -16,6 +16,7 @@ import Videos from "../pages/Videos"
 import Offline from "../pages/Offline"
 import BookingSuccess from "../pages/BookingSuccess"
 import AdminPage from "../pages/AdminPage"
+import AdminRoute from "../pages/AdminRoute"
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -53,7 +54,7 @@ useEffect(() => {
                   <Route path="/photos" element={<Photos />} />
                   <Route path="/videos" element={<Videos />} />
                   <Route path="/booking-success" element={<BookingSuccess />} />
-                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
                 </Routes>
               </Layout>
             }
