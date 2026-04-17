@@ -38,6 +38,13 @@ function Footer() {
     };
   }, []);
 
+  // const localStorage.setItem("user", JSON.stringify(data.user)); 
+  // Save user details for role checks in the AdminPage after fetching user data. This allows us to check the user's role in the Footer and conditionally render admin links.
+  const userString = localStorage.getItem("user");
+  const user = userString ? JSON.parse(userString) : null;
+
+  
+
   return (
     <footer className="bg-gray-900 text-white px-6 py-10 w-full">
 
@@ -55,11 +62,17 @@ function Footer() {
           <p className="text-sm text-gray-400">
             Creating clean, fresh, and healthy living spaces.
           </p>
-          <hr className="border-gray-700"/>
-          <NavLink to="/admin" className="text-gray-400 hover:text-yellow-400 transition flex flex-col">
+
+          {user?.role === "admin" && (
+          <NavLink to="/admin/dashboard">
+            <hr className="border-gray-700"/>
             MyHygiene Dashboard
-        </NavLink>
-        <hr className="border-gray-700"/>
+            <hr className="border-gray-700"/>
+          </NavLink>
+          
+         )}
+
+        
         </div>
 
         {/* CONTACT */}

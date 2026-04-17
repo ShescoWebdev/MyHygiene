@@ -148,7 +148,7 @@ function Navbar() {
         {/* BOOK BUTTON */}
         <div className="hidden md:block">
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -243,7 +243,7 @@ function Navbar() {
           {/* BOOK BUTTON */}
           <button
             onClick={() => {
-              navigate("/booking")
+              navigate("/book-choice")
               setOpen(false)
             }}
             className="shesco-btn px-6 py-3 bg-blue-500 text-white border border-blue-500 hover:bg-transparent hover:text-blue-500 transition duration-300 cursor-pointer mb-10"

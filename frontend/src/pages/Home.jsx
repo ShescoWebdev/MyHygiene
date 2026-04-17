@@ -135,7 +135,7 @@ useEffect(() => {
           </p><br /><br />
 
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -154,8 +154,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className='home3 bg-green-100 p-10 pb-20 md:pb-28 flex flex-col gap-14 md:flex-row items-center md:h-[110vh]'>
-
+      <div className='home3 bg-green-100 p-10 pb-20 md:pb-28 flex flex-col gap-14 md:flex-row items-center md:h-[120vh]'>
         <div>
           <h1 className='text-3xl md:text-4xl font-semibold md:pt-24'>
             <img 
@@ -171,12 +170,10 @@ useEffect(() => {
             Booking on MyHygiene is simple & straighforward!
             Get started in these four easy steps:
           </p>
-
-          <br /><br />
-
+          <br />
           <ol className="list-decimal list-inside space-y-3 marker:text-blue-600 marker:font-bold marker:text-lg md:marker:text-xl">
-            <li className='text-sm md:text-xl'><b className='text-blue-600'>Select Your Service:</b><br />Click on any of the "Book Now" buttons to choose from our range of cleaning, laundry, or hygiene services that best suit your needs.</li>
-            <li className='text-sm md:text-xl'><b className='text-blue-600'>Schedule Your Appointment:</b><br /> Pick a date and time that works for you, and we'll take care of the rest.</li>
+            <li className='text-sm md:text-xl'><b className='text-blue-600'>Select Your Service:</b><br />Click on any of the "Book Now" buttons to take you to the page where you can either book as a guest (without logging in), or create an account and log in (this allows you to save your details for faster booking in the future).</li>
+            <li className='text-sm md:text-xl'><b className='text-blue-600'>Schedule Your Appointment:</b><br /> Once you have visited the booking page either as a guest or logged in, choose from our services of cleaning, laundry, or hygiene services that best suit your needs. Pick a date and time that works for you, and we'll take care of the rest.</li>
             <li className='text-sm md:text-xl'><b className='text-blue-600'>Professional Service:</b> Our trained professionals will arrive on time, equipped with the necessary tools to provide top-notch service.</li>
             <li className='text-sm md:text-xl'><b className='text-blue-600'>Enjoy a Clean Space:</b><br /> Sit back and relax while we transform your home or workplace into a spotless, fresh, and healthy environment.</li>
           </ol>
@@ -184,7 +181,7 @@ useEffect(() => {
           <br />
 
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -253,7 +250,7 @@ useEffect(() => {
           <br /><br />
 
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn ml-7 px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -283,7 +280,7 @@ useEffect(() => {
           <br /><br />
 
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -314,7 +311,7 @@ useEffect(() => {
 
         <div className='mb-20'>
           <button
-            onClick={() => navigate("/booking")}
+            onClick={() => navigate("/book-choice")}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now

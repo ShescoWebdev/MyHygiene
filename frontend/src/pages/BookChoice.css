@@ -1,0 +1,97 @@
+.choice-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.choice-box {
+  text-align: center;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.choice-title {
+  font-size: 2rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.choice-subtitle {
+  color: #64748b;
+  margin-bottom: 3rem;
+}
+
+.choice-cards {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: white;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.guest-card:hover { border-color: #94a3b8; }
+.auth-card:hover { border-color: #3b82f6; }
+
+.card-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  margin: 0 0 1rem 0;
+  color: #0f172a;
+}
+
+.card p {
+  color: #475569;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  min-height: 40px;
+}
+
+.btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid #cbd5e1;
+  color: #475569;
+}
+
+.btn-outline:hover {
+  background: #f1f5f9;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}

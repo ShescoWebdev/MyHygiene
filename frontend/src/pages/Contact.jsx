@@ -75,7 +75,7 @@ function Contact() {
   </p>
 
   <a
-    href="/booking" onClick={() => navigate("/booking")} 
+    href="/booking" onClick={() => navigate("/book-choice")} 
     className="block w-full md:w-auto px-10 py-4 bg-[#f0b000] text-black text-lg font-semibold 
                rounded-full border-2 border-[#f0b000] transition duration-300 
                hover:bg-transparent hover:text-[#f0b000] hover:scale-105"

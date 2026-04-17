@@ -19,7 +19,7 @@ function About() {
       <p className='text-sm md:text-xl'>MyHygiene is a platform that connects you with skilled and thoroughly vetted professionals for your cleaning needs.</p>
 
       <button
-        onClick={() => navigate("/booking")}
+        onClick={() => navigate("/book-choice")}
         className="shesco-btn px-6 py-2 m-5 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now
@@ -74,7 +74,7 @@ function About() {
           <div className='about3 w-[20rem] md:w-[75rem] m-5 md:m-16 p-10 pb-16 bg-[#f4d171] flex flex-col items-center rounded-3xl gap-5'>
             <h1 className='text-blue-800 text-xl md:text-3xl font-bold text-center'>“MyHygiene is refining the experience of service delivery.”</h1>
             <button
-        onClick={() => navigate("/booking")}
+        onClick={() => navigate("/book-choice")}
         className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now
@@ -116,7 +116,7 @@ function About() {
           <h1 className='text-blue-800 text-xl md:text-3xl font-bold text-center'>Location</h1>
           <p className='text-center text-sm md:text-xl leading-relaxed text-blue-800'>You can find us anywhere within Benin City, and nearby areas in Edo State, Nigeria. We hope to meet you soon! </p>
           <button
-        onClick={() => navigate("/booking")}
+        onClick={() => navigate("/book-choice")}
         className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now

@@ -6,6 +6,13 @@ import Swal from "sweetalert2";
 import Skeleton from "../components/Skeleton";
 
 function BookingPage() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+//   const [formData, setFormData] = useState({
+//   name: user?.name || "",
+//   email: user?.email || ""
+// });
+  
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -263,13 +270,13 @@ function BookingPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          <input name="name" placeholder="Full Name" value={form.name} onChange={handleChange}
+          <input name="name" placeholder="Full Name" value={form.name} defaultValue={user?.name || ""} onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none" required />
 
           <input name="phone" placeholder="Phone Number" value={form.phone} onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none" required />
 
-          <input type="email" name="email" placeholder="Email Address" value={form.email} onChange={handleChange}
+          <input type="email" name="email" placeholder="Email Address" value={form.email} defaultValue={user?.email || ""} onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#f0b000] outline-none" required />
 
           <input name="address" placeholder="Your Detailed Address" value={form.address} onChange={handleChange}

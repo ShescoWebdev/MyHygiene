@@ -17,6 +17,8 @@ import Offline from "../pages/Offline"
 import BookingSuccess from "../pages/BookingSuccess"
 import AdminPage from "../pages/AdminPage"
 import AdminRoute from "../pages/AdminRoute"
+import BookChoice from "../pages/BookChoice"
+import Auth from "../pages/Auth"
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -49,10 +51,12 @@ useEffect(() => {
                   <Route path="/about" element={<About />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/book-choice" element={<BookChoice />} />
                   <Route path="/booking" element={<BookingPage />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/photos" element={<Photos />} />
                   <Route path="/videos" element={<Videos />} />
+                  <Route path="/auth" element={<Auth />} />
                   <Route path="/booking-success" element={<BookingSuccess />} />
                   <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
                 </Routes>
