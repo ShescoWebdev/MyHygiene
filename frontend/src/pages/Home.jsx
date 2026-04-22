@@ -79,10 +79,27 @@ useEffect(() => {
     img.src = images[0]
   }, [])
 
+    // Smart booking logic: Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+  const handleSmartBooking = () => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (token && user) {
+      //  Fully logged in -> Straight to booking
+      navigate("/booking");
+    } else if (!token && user) {
+      // Session expired / Logged out, but we remember them -> To Login (with redirect to booking after login)
+      navigate("/auth?redirect=/booking");
+    } else {
+      // Completely new user -> To Book Choice (where they can choose to book as guest or create account)
+      navigate("/book-choice");
+    }
+  };
+
   return (
       <PageWrapper>
-    <div className='home'>
-
+    <div className='home md:pb-20'>
       <div className="home1 bg-yellow-500">
         <video
   ref={videoRef}
@@ -135,7 +152,8 @@ useEffect(() => {
           </p><br /><br />
 
           <button
-            onClick={() => navigate("/book-choice")}
+            // onClick={() => navigate("/book-choice")}
+            onClick={handleSmartBooking}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -181,7 +199,8 @@ useEffect(() => {
           <br />
 
           <button
-            onClick={() => navigate("/book-choice")}
+            // onClick={() => navigate("/book-choice")}
+            onClick={handleSmartBooking}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -250,7 +269,8 @@ useEffect(() => {
           <br /><br />
 
           <button
-            onClick={() => navigate("/book-choice")}
+            // onClick={() => navigate("/book-choice")}
+            onClick={handleSmartBooking}
             className="shesco-btn ml-7 px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -280,7 +300,8 @@ useEffect(() => {
           <br /><br />
 
           <button
-            onClick={() => navigate("/book-choice")}
+            // onClick={() => navigate("/book-choice")}
+            onClick={handleSmartBooking}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now
@@ -311,7 +332,8 @@ useEffect(() => {
 
         <div className='mb-20'>
           <button
-            onClick={() => navigate("/book-choice")}
+            // onClick={() => navigate("/book-choice")}
+            onClick={handleSmartBooking}
             className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
           >
             Book Now

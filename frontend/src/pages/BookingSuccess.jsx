@@ -4,7 +4,7 @@ import PageWrapper from "../components/PageWrapper";
 function BookingSuccess() {
   const location = useLocation();
 
-  // SECURITY CHECK: Did they come from a successful booking?
+  // Did they come from a successful booking?
   // If not, redirect them to the home page immediately.
   if (!location.state || !location.state.bookingSuccessful) {
     return <Navigate to="/" replace />;

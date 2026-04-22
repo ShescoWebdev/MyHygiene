@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import "./BookChoice.css"; // We will create this file below
+import "./BookChoice.css";
 
 export default function BookChoice() {
   const navigate = useNavigate();
 
   return (
-    <div className="choice-container md:mt-[-5vh] md:pt-10 pt-5">
+    <div className="choice-container md:mt-[-5vh] pt-10">
       <div className="choice-box">
         <h2 className="choice-title">How would you like to proceed?</h2>
         <p className="choice-subtitle">Log in to save your details for next time, or continue quickly as a guest.</p>

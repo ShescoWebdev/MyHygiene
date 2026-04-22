@@ -19,6 +19,7 @@ import AdminPage from "../pages/AdminPage"
 import AdminRoute from "../pages/AdminRoute"
 import BookChoice from "../pages/BookChoice"
 import Auth from "../pages/Auth"
+import SignIn from "../pages/SignIn"
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -57,6 +58,7 @@ useEffect(() => {
                   <Route path="/photos" element={<Photos />} />
                   <Route path="/videos" element={<Videos />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/sign-in" element={<SignIn />} />
                   <Route path="/booking-success" element={<BookingSuccess />} />
                   <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
                 </Routes>

@@ -38,12 +38,19 @@ function Footer() {
     };
   }, []);
 
-  // const localStorage.setItem("user", JSON.stringify(data.user)); 
-  // Save user details for role checks in the AdminPage after fetching user data. This allows us to check the user's role in the Footer and conditionally render admin links.
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
-
-  
+  // SAFELY parse user data from localStorage
+  let user = null;
+  try {
+    const userString = localStorage.getItem("user");
+    // Only parse if it's not null AND not the literal string "undefined"
+    if (userString && userString !== "undefined") {
+      user = JSON.parse(userString);
+    }
+  } catch (error) {
+    console.error("Error parsing user data in Footer:", error);
+    // Optional: Clean up the corrupted data so it doesn't happen again
+    localStorage.removeItem("user");
+  }
 
   return (
     <footer className="bg-gray-900 text-white px-6 py-10 w-full">
@@ -54,25 +61,21 @@ function Footer() {
         <div className="flex flex-col gap-3">
           <img src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993793/Logo1_rity18.jpg" 
           alt="MyHygiene Logo" 
-          className="
-          w-32 rounded
-          text-sm"
+          className="w-32 rounded text-sm"
           loading="lazy"
           decoding="async" />
           <p className="text-sm text-gray-400">
             Creating clean, fresh, and healthy living spaces.
           </p>
 
+          {/* Render Admin Link ONLY if role is admin */}
           {user?.role === "admin" && (
-          <NavLink to="/admin/dashboard">
-            <hr className="border-gray-700"/>
+          <NavLink to="/admin/dashboard" className="mt-2 hover:text-yellow-400 transition">
+            <hr className="border-gray-700 mb-2"/>
             MyHygiene Dashboard
-            <hr className="border-gray-700"/>
+            <hr className="border-gray-700 mt-2"/>
           </NavLink>
-          
          )}
-
-        
         </div>
 
         {/* CONTACT */}
@@ -129,13 +132,13 @@ function Footer() {
           >
             <div className="flex flex-col gap-2">
               <NavLink onClick={closeAll} to="/" className="text-gray-400 hover:text-yellow-400 transition">Home</NavLink>
-              <hr className="pb-3"/>
+              <hr className="pb-3 border-gray-700"/>
               <NavLink onClick={closeAll} to="/about" className="text-gray-400 hover:text-yellow-400 transition">About Us</NavLink>
-              <hr className="pb-3"/>
+              <hr className="pb-3 border-gray-700"/>
               <NavLink onClick={closeAll} to="/services" className="text-gray-400 hover:text-yellow-400 transition">Services</NavLink>
-              <hr className="pb-3"/>
+              <hr className="pb-3 border-gray-700"/>
               <NavLink onClick={closeAll} to="/contact" className="text-gray-400 hover:text-yellow-400 transition">Contact Us</NavLink>
-              <hr className="pb-8"/>
+              <hr className="pb-8 border-gray-700"/>
 
               {/* GALLERY DROPDOWN */}
               <div>
@@ -157,17 +160,17 @@ function Footer() {
                   `}
                 >
                   <div className="flex flex-col pl-4 gap-2">
-                    <NavLink onClick={closeAll} to="/photos" className="text-gray-400 hover:text-yellow-400 transition border rounded-2xl p-2">
+                    <NavLink onClick={closeAll} to="/photos" className="text-gray-400 hover:text-yellow-400 transition border border-gray-700 rounded-2xl p-2">
                       Photos
                     </NavLink>
-                    <NavLink onClick={closeAll} to="/videos" className="text-gray-400 hover:text-yellow-400 transition border rounded-2xl p-2">
+                    <NavLink onClick={closeAll} to="/videos" className="text-gray-400 hover:text-yellow-400 transition border border-gray-700 rounded-2xl p-2">
                       Videos
                     </NavLink>
                   </div>
                 </div>
               </div>
 
-              <NavLink onClick={closeAll} to="/booking" className="text-gray-400 hover:text-yellow-400 transition">
+              <NavLink onClick={closeAll} to="/booking" className="text-gray-400 hover:text-yellow-400 transition mt-4">
                 Book Now
               </NavLink>
             </div>
@@ -180,30 +183,30 @@ function Footer() {
           <h2 className="text-lg font-semibold">Follow Us</h2>
 
           <div className="flex gap-4 flex-wrap">
-            <a href="https://www.instagram.com/clean_withmyhygiene" target="_blank" className="hover:text-pink-400 transition">
-              <FaInstagram />
+            <a href="https://www.instagram.com/clean_withmyhygiene" target="_blank" rel="noreferrer" className="hover:text-pink-400 transition">
+              <FaInstagram size={20} />
             </a>
 
-            <a href="https://www.facebook.com/share/1MTfiwciTR/" target="_blank" className="hover:text-blue-500 transition">
-              <FaFacebook />
+            <a href="https://www.facebook.com/share/1MTfiwciTR/" target="_blank" rel="noreferrer" className="hover:text-blue-500 transition">
+              <FaFacebook size={20} />
             </a>
 
-            <a href="https://www.linkedin.com/in/gladys-oriowha-08ba92356" target="_blank" className="hover:text-blue-400 transition">
-              <FaLinkedin />
+            <a href="https://www.linkedin.com/in/gladys-oriowha-08ba92356" target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">
+              <FaLinkedin size={20} />
             </a>
 
-            <a href="https://www.youtube.com/@Clean_withmyhygiene" target="_blank" className="hover:text-red-500 transition">
-              <FaYoutube />
+            <a href="https://www.youtube.com/@Clean_withmyhygiene" target="_blank" rel="noreferrer" className="hover:text-red-500 transition">
+              <FaYoutube size={20} />
             </a>
 
-            <a href="https://wa.me/2348145364748" target="_blank"
+            <a href="https://wa.me/2348145364748" target="_blank" rel="noreferrer"
               className="hover:text-green-500 hover:drop-shadow-[0_0_8px_#22c55e] transition duration-300">
-              <FaWhatsapp />
+              <FaWhatsapp size={20} />
             </a>
 
-            <a href="https://www.tiktok.com/@clean_withmyhygiene" target="_blank"
-              className="hover:text-white transition text-sm border px-2 py-1 rounded">
-              <FaTiktok />
+            <a href="https://www.tiktok.com/@clean_withmyhygiene" target="_blank" rel="noreferrer"
+              className="hover:text-white transition text-sm border border-gray-500 px-2 py-1 rounded flex items-center justify-center">
+              <FaTiktok size={16} />
             </a>
           </div>
         </div>

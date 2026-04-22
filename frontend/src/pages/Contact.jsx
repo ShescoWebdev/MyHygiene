@@ -6,6 +6,24 @@ import PageWrapper from "../components/PageWrapper";
 function Contact() {
   const navigate = useNavigate();
 
+  // Smart booking logic: Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+  const handleSmartBooking = () => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (token && user) {
+      //  Fully logged in -> Straight to booking
+      navigate("/booking");
+    } else if (!token && user) {
+      // Session expired / Logged out, but we remember them -> To Login (with redirect to booking after login)
+      navigate("/auth?redirect=/booking");
+    } else {
+      // Completely new user -> To Book Choice (where they can choose to book as guest or create account)
+      navigate("/book-choice");
+    }
+  };
+
   return (
     <PageWrapper>
       <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
@@ -75,7 +93,7 @@ function Contact() {
   </p>
 
   <a
-    href="/booking" onClick={() => navigate("/book-choice")} 
+    href="#" onClick={handleSmartBooking}
     className="block w-full md:w-auto px-10 py-4 bg-[#f0b000] text-black text-lg font-semibold 
                rounded-full border-2 border-[#f0b000] transition duration-300 
                hover:bg-transparent hover:text-[#f0b000] hover:scale-105"

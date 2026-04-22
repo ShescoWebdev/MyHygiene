@@ -11,6 +11,26 @@ function About() {
   useEffect(() => {
     setTimeout(() => setLoading(false), 3000)
   }, [])
+
+  // Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+  const handleSmartBooking = () => {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (token && user) {
+      //  Fully logged in, Straight to booking
+      navigate("/booking");
+    } else if (!token && user) {
+      // Session expired / Logged out, but we remember them, To Login (with redirect to booking after login)
+      navigate("/auth?redirect=/booking");
+    } else {
+      // Completely new user, To Book Choice (where they can choose to book as guest or create account)
+      navigate("/book-choice");
+    }
+  };
+
+
   return (
     <PageWrapper>
       <div className='about1 text-black bg-[#fff5ed] pb-20 md:pb-0 flex flex-col gap-5 justify-between items-center mt-7 md:mt-[-26px] pt-10'>
@@ -19,7 +39,8 @@ function About() {
       <p className='text-sm md:text-xl'>MyHygiene is a platform that connects you with skilled and thoroughly vetted professionals for your cleaning needs.</p>
 
       <button
-        onClick={() => navigate("/book-choice")}
+        // onClick={() => navigate("/book-choice")}
+        onClick={handleSmartBooking}
         className="shesco-btn px-6 py-2 m-5 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now
@@ -74,7 +95,8 @@ function About() {
           <div className='about3 w-[20rem] md:w-[75rem] m-5 md:m-16 p-10 pb-16 bg-[#f4d171] flex flex-col items-center rounded-3xl gap-5'>
             <h1 className='text-blue-800 text-xl md:text-3xl font-bold text-center'>“MyHygiene is refining the experience of service delivery.”</h1>
             <button
-        onClick={() => navigate("/book-choice")}
+        // onClick={() => navigate("/book-choice")}
+        onClick={handleSmartBooking}
         className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now
@@ -116,7 +138,8 @@ function About() {
           <h1 className='text-blue-800 text-xl md:text-3xl font-bold text-center'>Location</h1>
           <p className='text-center text-sm md:text-xl leading-relaxed text-blue-800'>You can find us anywhere within Benin City, and nearby areas in Edo State, Nigeria. We hope to meet you soon! </p>
           <button
-        onClick={() => navigate("/book-choice")}
+        // onClick={() => navigate("/book-choice")}
+        onClick={handleSmartBooking}
         className="shesco-btn px-6 py-2 bg-blue-500 text-white border border-blue-500 transition duration-300 hover:bg-transparent hover:text-blue-500 hover:scale-105 cursor-pointer"
       >
         Book Now
