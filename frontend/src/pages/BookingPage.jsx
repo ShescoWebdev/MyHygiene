@@ -4,11 +4,11 @@ import PageWrapper from "../components/PageWrapper";
 import API from "../api";
 import Swal from "sweetalert2";
 import Skeleton from "../components/Skeleton";
-import { AuthContext } from "../context/AuthContext"; // IMPORT YOUR NEW CONTEXT
+import { AuthContext } from "../context/AuthContext";
 
 function BookingPage() {
-  // Grab the real-time global user
   const { user } = useContext(AuthContext);
+  console.log("Current user object:", user);
 
   const [form, setForm] = useState({
     name: "",
@@ -25,7 +25,7 @@ function BookingPage() {
     period: "AM",
   });
 
-  // GUARANTEED AUTO-FILL: This watches the user. If they are logged in, it fills the data instantly.
+  // AUTO-FILL: If user is logged in, fill the data instantly.
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -38,8 +38,10 @@ function BookingPage() {
     }
   }, [user]);
 
-  const [bookings, setBookings] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
+  // SEPARATED STATES: Drafts (new form entries) vs History (fetched from DB)
+  const [draftBookings, setDraftBookings] = useState([]);
+  const [historyBookings, setHistoryBookings] = useState([]);
+  const [editDraftIndex, setEditDraftIndex] = useState(null);
   
   const [loadingIndex, setLoadingIndex] = useState(null); 
   const [loading, setLoading] = useState(true);
@@ -86,13 +88,13 @@ function BookingPage() {
     const combinedItems = [...form.selectedItems, form.items].filter(Boolean).join(", ");
     const newBooking = { ...form, items: combinedItems, displayTime: formatDateTime() };
 
-    if (editIndex !== null) {
-      const updatedBookings = [...bookings];
-      updatedBookings[editIndex] = newBooking;
-      setBookings(updatedBookings);
-      setEditIndex(null);
+    if (editDraftIndex !== null) {
+      const updatedBookings = [...draftBookings];
+      updatedBookings[editDraftIndex] = newBooking;
+      setDraftBookings(updatedBookings);
+      setEditDraftIndex(null);
     } else {
-      setBookings([...bookings, newBooking]);
+      setDraftBookings([...draftBookings, newBooking]);
     }
 
     // Reset form but keep the auto-filled user details intact
@@ -116,19 +118,19 @@ function BookingPage() {
     }, 100);
   };
 
-  const handleEdit = (index) => {
-    const booking = bookings[index];
+  const handleEditDraft = (index) => {
+    const booking = draftBookings[index];
     setForm({ ...booking, selectedItems: booking.selectedItems || [] });
-    setEditIndex(index);
+    setEditDraftIndex(index);
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
   
-  const handleDelete = (index) => {
+  const handleDeleteDraft = (index) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to recover this booking!",
+      text: "You won't be able to recover this booking draft!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#f0b000",
@@ -136,9 +138,9 @@ function BookingPage() {
       confirmButtonText: "Yes, delete"
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedBookings = bookings.filter((_, i) => i !== index);
-        setBookings(updatedBookings);
-        Swal.fire({ title: "Deleted!", text: "Your booking has been removed.", icon: "success", confirmButtonColor: "#f0b000", timer: 1500 });
+        const updatedBookings = draftBookings.filter((_, i) => i !== index);
+        setDraftBookings(updatedBookings);
+        Swal.fire({ title: "Deleted!", text: "Your booking draft has been removed.", icon: "success", confirmButtonColor: "#f0b000", timer: 1500 });
       }
     });
   };
@@ -151,7 +153,8 @@ function BookingPage() {
       const { data } = await API.get("/bookings/my", {
           headers: { Authorization: `Bearer ${token}` }
       });
-      setBookings(data);
+      // Set to history, not drafts!
+      setHistoryBookings(data);
     } catch (err) {
       console.error(err);
     }
@@ -159,42 +162,63 @@ function BookingPage() {
 
   useEffect(() => {
     fetchBookings();
-  }, [user]); // Re-fetch if user logs in
+  }, [user]);
 
-  const handleProceed = async (booking, index) => {
-    setLoadingIndex(index);
-    try {
-      const token = localStorage.getItem("token");
-      const { data } = await API.post(
-        "/bookings",
-        {
-          name: booking.name,
-          phone: booking.phone,
-          email: booking.email,
-          service: booking.service,
-          date: booking.date,
-          time: `${booking.hour}:${booking.minute} ${booking.period}`,
-          address: booking.address,
-          items: booking.items,
-          instructions: booking.instructions,
-        },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+  // Handle Proceed: Drafts or History
+  const handleProceed = (booking, type, index) => {
+    Swal.fire({
+      title: "Confirm Booking",
+      text: "Are you sure you want to send this booking request?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#f0b000",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Save Booking!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoadingIndex(`${type}-${index}`);
+        try {
+          const token = localStorage.getItem("token");
+          
+          // In case history booking time format differs from drafts
+          const bookingTime = booking.time || `${booking.hour}:${booking.minute} ${booking.period}`;
 
-      navigate("/booking-success", { state: { bookingSuccessful: true } });
-      const updatedBookings = bookings.filter((_, i) => i !== index);
-      setBookings(updatedBookings);
+          const { data } = await API.post(
+            "/bookings",
+            {
+              name: booking.name,
+              phone: booking.phone,
+              email: booking.email,
+              service: booking.service,
+              date: booking.date,
+              time: bookingTime,
+              address: booking.address,
+              items: booking.items,
+              instructions: booking.instructions,
+            },
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+          );
 
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: err.response?.data?.message || "Something went wrong! Please try again.",
-        confirmButtonColor: "#f0b000",
-      });
-    } finally {
-      setLoadingIndex(null);
-    }
+          navigate("/booking-success", { state: { bookingSuccessful: true } });
+          
+          // Only remove from screen if it was a draft. We leave history alone.
+          if (type === "draft") {
+            const updatedBookings = draftBookings.filter((_, i) => i !== index);
+            setDraftBookings(updatedBookings);
+          }
+
+        } catch (err) {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: err.response?.data?.message || "Something went wrong! Please try again.",
+            confirmButtonColor: "#f0b000",
+          });
+        } finally {
+          setLoadingIndex(null);
+        }
+      }
+    });
   };
 
   return (
@@ -225,13 +249,27 @@ function BookingPage() {
       </div>
 
       <div>
-        <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-4px] md:mt-[-5px] lg:mx-[20px] lg:mt-[-5px] xl:mx-[53.7px] xl:mt-[-5px]">
+        <marquee behavior="smooth" direction="left" className="bg-yellow-500 pt-4 rounded-b-full mt-[-4px] md:mt-[-5px] lg:mt-[-5px] xl:mx-[53.7px] xl:mt-[-5px]">
           <h2 className="text-[18px] font-bold text-gray-800 mb-4">For all your payments, we will contact you to confirm the details once we receive your request. So do well to drop your contact information and be available for our call. For more information, contact us on +234 814 536 4748.</h2>
         </marquee>
       </div>
 
+      {/* INSTRUCTION BANNER FOR LOGGED IN USERS */}
+      {user && (
+        <div className="max-w-2xl mx-auto mt-12 mb-[-30px]">
+          <div className="bg-blue-50 border-l-4 border-[#f0b000] p-5 rounded-r-xl shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              Welcome back, {user.name?.split(' ')[0] || 'User'}!
+            </h2>
+            <p className="text-gray-700 text-sm md:text-base">
+              Scroll down below to view your <strong>booking history</strong>, and choose to save bookings directly from there if it suits your needs. Otherwise, proceed with your new booking in the form below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* FORM */}
-      <div ref={formRef} className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-32 rounded-2xl p-6 border-t-4 border-[#f0b000]">
+      <div ref={formRef} className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-24 rounded-2xl p-6 border-t-4 border-[#f0b000]">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Book a Service</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -258,7 +296,7 @@ function BookingPage() {
           </select>
 
           <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Select areas and items to clean (optional, tick all that applies):</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">Select areas and items to clean (optional, tick all that applies):</p>
             <div className="flex flex-wrap gap-2">
               {quickItems.map((item) => (
                 <label key={item} className="flex items-center gap-2 cursor-pointer">
@@ -314,53 +352,104 @@ function BookingPage() {
           {form.date && <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded-lg">{formatDateTime()}</p>}
 
           <button type="submit" className="w-full py-3 rounded-lg font-semibold transition bg-[#f0b000] hover:bg-[#d59c02]">
-            {editIndex !== null ? "Update Booking" : "Save Booking"}
+            {editDraftIndex !== null ? "Update Booking" : "Save Booking Draft"}
           </button>
 
         </form>
       </div>
 
-      {/* BOOKINGS */}
-      <div ref={bookingsRef} className="max-w-2xl mx-auto mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Bookings</h2>
-
-        {bookings.length === 0 ? (
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-gray-500 text-lg">No bookings yet 😴</p>
-            <p className="text-gray-400 text-sm mt-1">Your bookings will appear here.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {bookings.map((b, index) => (
-              <div key={index} className="p-4 rounded-xl border-t-4 border-b-4 border-yellow-500 shadow hover:shadow-md transition bg-white">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-blue-600">{b.name}</h3>
-                  <span className="text-sm text-blue-600 font-medium">{b.displayTime}</span>
-                </div>
-                <hr />
-                <p className="text-gray-600 pt-3 pb-3">📞 {b.phone}</p>
-                <hr />
-                <p className="text-gray-600 pt-3 pb-3">📧 {b.email}</p>
-                <hr />
-                <p className="text-gray-600 pt-3 pb-3">📍 {b.address}</p>
-                  <hr />
-                {b.service && <p className="text-gray-700 pt-3 pb-3">🧹 {b.service}</p>}
-                <hr />
-                {b.items && <p className="text-gray-70 p-2 rounded pt-3 pb-3">🧽 {b.items}</p>}
-                  <hr />
-                {b.instructions && <p className="text-gray-600 pt-3 pb-3">📌 {b.instructions}</p>}
-                <hr />
-                <div className="flex justify-between mt-4">
-                  <button onClick={() => handleEdit(index)} className="mt-3 text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition">Edit</button>
-                  <button onClick={() => handleDelete(index)} className="mt-3 text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition">Delete</button>
-                  <button onClick={() => handleProceed(b, index)} disabled={loadingIndex === index} className={`mt-3 text-sm px-3 py-1 rounded transition flex items-center justify-center gap-2 ${loadingIndex === index ? "bg-gray-400 text-white cursor-not-allowed" : "bg-blue-100 text-blue-600 hover:bg-blue-200"}`}>
-                    {loadingIndex === index ? (<><span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span>Saving...</>) : ("Save")}
-                  </button>
-                </div>
+      {/* BOOKINGS LISTINGS */}
+      <div ref={bookingsRef} className="max-w-2xl mx-auto mt-12 mb-20 space-y-12">
+        
+        {/* NEW DRAFT BOOKINGS */}
+        {(draftBookings.length > 0 || !user) && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your New Bookings</h2>
+            {draftBookings.length === 0 ? (
+              <div className="bg-white p-6 rounded-xl shadow text-center border border-gray-100">
+                <p className="text-gray-500 text-lg">No new bookings yet 😴</p>
+                <p className="text-gray-400 text-sm mt-1">Bookings you create in the form will appear here before you save them.</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-4">
+                {draftBookings.map((b, index) => (
+                  <div key={`draft-${index}`} className="p-4 rounded-xl border-t-4 border-b-4 border-yellow-500 shadow hover:shadow-md transition bg-white">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold text-blue-600">{b.name}</h3>
+                      <span className="text-sm text-blue-600 font-medium">{b.displayTime}</span>
+                    </div>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📞 {b.phone}</p>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📧 {b.email}</p>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📍 {b.address}</p>
+                      <hr />
+                    {b.service && <p className="text-gray-700 pt-3 pb-3">🧹 {b.service}</p>}
+                    <hr />
+                    {b.items && <p className="text-gray-70 p-2 rounded pt-3 pb-3">🧽 {b.items}</p>}
+                      <hr />
+                    {b.instructions && <p className="text-gray-600 pt-3 pb-3">📌 {b.instructions}</p>}
+                    <hr />
+                    <div className="flex justify-between mt-4">
+                      <button onClick={() => handleEditDraft(index)} className="mt-3 text-sm bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 transition">Edit</button>
+
+                      <button onClick={() => handleDeleteDraft(index)} className="mt-3 text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition">Delete</button>
+
+                      <button onClick={() => handleProceed(b, "draft", index)} disabled={loadingIndex === `draft-${index}`} className={`mt-3 text-sm px-4 py-1 rounded font-medium transition flex items-center justify-center gap-2 ${loadingIndex === `draft-${index}` ? "bg-gray-400 text-white cursor-not-allowed" : "bg-[#f0b000] text-black hover:bg-[#d59c02]"}`}>
+                        {loadingIndex === `draft-${index}` ? (<><span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span>Saving...</>) : ("Save Final Booking")}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
+
+        {/* BOOKING HISTORY (ONLY IF LOGGED IN) */}
+        {user && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 pt-6 border-t border-gray-300">Your Booking History</h2>
+            {historyBookings.length === 0 ? (
+              <div className="bg-white p-6 rounded-xl shadow text-center border border-gray-100">
+                <p className="text-gray-500 text-lg">No past bookings found.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {historyBookings.map((b, index) => (
+                  <div key={`history-${index}`} className="p-4 rounded-xl border-t-4 border-b-4 border-gray-400 shadow hover:shadow-md transition bg-white opacity-95">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold text-gray-700">{b.name}</h3>
+                      <span className="text-sm text-gray-500 font-medium">
+                        {b.displayTime || (b.date && new Date(b.date).toLocaleDateString()) || "Past Booking"}
+                      </span>
+                    </div>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📞 {b.phone}</p>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📧 {b.email}</p>
+                    <hr />
+                    <p className="text-gray-600 pt-3 pb-3">📍 {b.address}</p>
+                      <hr />
+                    {b.service && <p className="text-gray-700 pt-3 pb-3">🧹 {b.service}</p>}
+                    <hr />
+                    {b.items && <p className="text-gray-70 p-2 rounded pt-3 pb-3">🧽 {b.items}</p>}
+                      <hr />
+                    {b.instructions && <p className="text-gray-600 pt-3 pb-3">📌 {b.instructions}</p>}
+                    <hr />
+                    <div className="flex justify-end mt-4">
+                      <button onClick={() => handleProceed(b, "history", index)} disabled={loadingIndex === `history-${index}`} className={`mt-3 text-sm px-4 py-1 rounded font-medium transition flex items-center justify-center gap-2 ${loadingIndex === `history-${index}` ? "bg-gray-400 text-white cursor-not-allowed" : "bg-blue-100 text-blue-700 hover:bg-blue-200"}`}>
+                        {loadingIndex === `history-${index}` ? (<><span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span>Saving...</>) : ("Save (Re-book this)")}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
     </PageWrapper>

@@ -4,14 +4,14 @@ import { createContext, useState, useEffect } from "react";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // THIS IS THE STATE THE NAVBAR IS WATCHING!
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check for logged-in user when the app first loads
+  // Check for logged in user when the app first loads
    useEffect(() => {
     const storedUser = localStorage.getItem("user");
     
-    // Check if storedUser exists AND isn't the string "undefined"
+    // Check if stored user exists AND the string is not "undefined"
     if (storedUser && storedUser !== "undefined") {
       try {
         setUser(JSON.parse(storedUser));
@@ -20,11 +20,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("user");
       }
     }
+    setLoading(false);
   }, []);
 
   // THE LOGIN FUNCTION
   const login = (userData, token) => {
-    // Save to local storage so they stay logged in if they refresh
+    // Save to local storage so users stay logged in if they refresh
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", token);
     
@@ -40,12 +41,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     
     // This forces the app to wipe its memory and go to the home page.
-    // It solves 99% of "it only works the first time" bugs!
     window.location.href = "/"; 
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

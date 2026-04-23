@@ -16,7 +16,7 @@ function Navbar() {
   const mobileDropdownRef = useRef(null)
 
   // Grab user and logout from our Global Brain (Context)
-  const { user, logout } = useContext(AuthContext)
+  const { user, logout, loading } = useContext(AuthContext)
   
   // States for the profile dropdowns
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -25,7 +25,7 @@ function Navbar() {
   const profileRef = useRef(null);
   const fileInputRef = useRef(null); // Reference for hidden file input
 
-  // This effect closes the profile dropdowns if the user clicks anywhere else
+  // Closes the profile dropdowns if the user clicks anywhere else
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -101,7 +101,7 @@ function Navbar() {
     }
   };
 
-  // --- SWEETALERT LOGOUT HANDLER ---
+  //  SWEETALERT LOGOUT HANDLER 
   const handleLogoutClick = () => {
     setProfileDropdown(false); 
     setOpen(false); 
@@ -121,7 +121,7 @@ function Navbar() {
     });
   };
 
-  // --- FILE UPLOAD HANDLER ---
+  // FILE UPLOAD HANDLER
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -138,7 +138,7 @@ function Navbar() {
         {/* NAVBAR */}
         <nav className="bg-[#f0b000] px-4 md:px-6 py-4 flex justify-between items-center shadow-md w-full">
 
-          {/* LEFT SIDE: Hamburger Menu + Logo */}
+          {/* Hamburger Menu + Logo */}
           <div className="flex items-center gap-3 md:gap-0">
             {/* TOGGLE BUTTON (Mobile Only) */}
             <button
@@ -201,7 +201,7 @@ function Navbar() {
 
             {/* CONDITIONAL: AVATAR (Logged In) OR SIGN IN BUTTON (Logged Out) */}
             {user ? (
-              // Logged In -> Show Avatar Dropdown (Mobile & Desktop)
+              // If Logged In, Show Avatar Dropdown (Mobile & Desktop)
               <div className="relative md:border-l-2 md:border-black/20 md:pl-5 flex items-center" ref={profileRef}>
                 
                 {/* SMALL NAVBAR AVATAR */}

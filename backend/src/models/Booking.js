@@ -6,7 +6,8 @@ const bookingSchema = new mongoose.Schema(
         type: String, 
         required: true 
     },
-    phone:{ type: String, 
+    phone:{ 
+        type: String, 
         required: true 
     },
     email:{ 

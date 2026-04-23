@@ -5,26 +5,30 @@ import jwt from "jsonwebtoken";
 
 // Register
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, address } = req.body; 
 
   const userExists = await User.findOne({ email });
-
   if (userExists) {
     return res.status(400).json({ message: "User already exists" });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // save to MongoDB
   const user = await User.create({
     name,
     email,
     password: hashedPassword,
+    phone,
+    address,
   });
 
   res.status(201).json({
     _id: user._id,
     name: user.name,
     email: user.email,
+    phone: user.phone,
+    address: user.address,
     token: generateToken(user._id),
   });
 };
@@ -40,6 +44,8 @@ export const loginUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
+      address: user.address,
       token: generateToken(user._id),
     });
   } else {
@@ -56,7 +62,7 @@ export const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-    req.user = decoded; // contains id + role
+    req.user = decoded; // id + role
     next();
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });

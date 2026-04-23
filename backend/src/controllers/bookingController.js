@@ -29,7 +29,7 @@ export const createBooking = async (req, res) => {
       sendEmail(booking),
       sendWhatsApp(booking)
     ]).then(results => {
-      // This will quietly log any errors in server without crashing the app
+      // Log any errors in server without crashing the app
       results.forEach((result, index) => {
         if (result.status === "rejected") {
           const type = index === 0 ? "Email" : "WhatsApp";
