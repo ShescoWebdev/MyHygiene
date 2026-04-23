@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext"; // Adjust path as needed
-import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"; // Added Eye and EyeOff
+import { Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"; // Added Phone and MapPin
 import API from "../api"; // Adjust to your axios/fetch instance
 import Swal from "sweetalert2";
 
@@ -16,6 +16,8 @@ export default function SignIn() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",     // Added phone
+    address: "",   // Added address
     password: "",
   });
 
@@ -31,10 +33,13 @@ export default function SignIn() {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
       const { data } = await API.post(endpoint, formData);
 
+      // Now extracting phone and address from backend response
       const userData = {
         _id: data._id,
         name: data.name,
         email: data.email,
+        phone: data.phone,       // Catching phone
+        address: data.address,   // Catching address
         profilePic: data.profilePic || null,
       };
 
@@ -108,6 +113,36 @@ export default function SignIn() {
                 onChange={handleChange}
               />
             </div>
+
+            {/* NEW: Phone Field (Only for Sign Up) */}
+            {!isLogin && (
+              <div className="relative">
+                <Phone className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="Phone Number"
+                  required={!isLogin}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f0b000] focus:outline-none transition"
+                  onChange={handleChange}
+                />
+              </div>
+            )}
+
+            {/* NEW: Address Field (Only for Sign Up) */}
+            {!isLogin && (
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Residential Address"
+                  required={!isLogin}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f0b000] focus:outline-none transition"
+                  onChange={handleChange}
+                />
+              </div>
+            )}
 
             {/* Password Field with Eye Icon */}
             <div className="relative">

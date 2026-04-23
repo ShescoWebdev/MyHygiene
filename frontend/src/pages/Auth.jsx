@@ -24,6 +24,8 @@ export default function Auth() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "", // Added phone
+    address: "", // Added address
     password: "",
     confirmPassword: "", 
   });
@@ -73,12 +75,13 @@ export default function Auth() {
 
         console.log("LOGIN RESPONSE FROM BACKEND:", data);
 
-        // 1. Package the flat data into a clean user object
+        // 1. Package the flat data into a clean user object (now including phone and address)
         const loggedInUser = {
           _id: data._id,
           name: data.name,
           email: data.email,
-          // If your backend ever sends a profile picture later, add it here:
+          phone: data.phone,     // Added phone
+          address: data.address, // Added address
           profilePic: data.profilePic || null 
         };
 
@@ -92,6 +95,8 @@ export default function Auth() {
         const { data } = await API.post("/auth/register", {
           name: form.name,
           email: form.email,
+          phone: form.phone,       // Sent to backend
+          address: form.address,   // Sent to backend
           password: form.password,
         });
 
@@ -99,7 +104,13 @@ export default function Auth() {
 
         // If backend auto-logs them in upon registration and sends a token back:
         if (data.token) {
-           const userData = data.user || { name: form.name, email: form.email, phone: form.phone, address: form.address };
+           const userData = data.user || { 
+             _id: data._id, 
+             name: form.name, 
+             email: form.email, 
+             phone: form.phone, 
+             address: form.address 
+           };
            
            // Use the context login function here too
            login(userData, data.token);
@@ -181,6 +192,38 @@ export default function Auth() {
                 placeholder="you@example.com"
               />
             </div>
+
+            {/* NEW: Phone Field (Sign Up Only) */}
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  name="phone"
+                  type="text"
+                  required={!isLogin}
+                  value={form.phone}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
+                  placeholder="+234 814..."
+                />
+              </div>
+            )}
+
+            {/* NEW: Address Field (Sign Up Only) */}
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Residential Address</label>
+                <input
+                  name="address"
+                  type="text"
+                  required={!isLogin}
+                  value={form.address}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
+                  placeholder="Your full address..."
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

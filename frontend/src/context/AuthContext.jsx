@@ -25,12 +25,24 @@ export const AuthProvider = ({ children }) => {
 
   // THE LOGIN FUNCTION
   const login = (userData, token) => {
-    // Save to local storage so users stay logged in if they refresh
+    // Save current session
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", token);
     
+    // Handle Saved Accounts History
+    const existingAccountsStr = localStorage.getItem("savedAccounts");
+    let savedAccounts = existingAccountsStr ? JSON.parse(existingAccountsStr) : [];
+
+    // Filter out the user if they already exist in the array (to update their info/token)
+    savedAccounts = savedAccounts.filter(acc => acc.user.email !== userData.email);
     
-    // Updates the Navbar with the new user data to show the avatar and hide the login banner
+    // Add them back to the top of the list
+    savedAccounts.unshift({ user: userData, token: token });
+    
+    // Save the updated list back to local storage
+    localStorage.setItem("savedAccounts", JSON.stringify(savedAccounts));
+
+    // Update state
     setUser(userData); 
   };
 
