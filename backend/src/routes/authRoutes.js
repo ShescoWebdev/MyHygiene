@@ -1,17 +1,8 @@
 import express from "express";
-import multer from "multer";
 import { registerUser, loginUser, updateProfilePic, protect } from "../controllers/authController.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
-
-// Set up Multer to store the file temporarily in memory
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, 
-  }
-});
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
