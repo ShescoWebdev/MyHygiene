@@ -318,9 +318,18 @@ function Navbar() {
             <X size={16} />
           </button>
           
-          {/* THE MAGIC SAUCE: Two inputs, one for gallery, one for the selfie camera! */}
-          <input type="file" accept="image/*" hidden ref={fileInputRef} onChange={handleFileUpload} />
-          <input type="file" accept="image/*" capture="user" hidden ref={cameraInputRef} onChange={handleFileUpload} />
+          <input 
+            type="file" 
+            accept="image/jpeg, image/png, image/webp, image/heic, image/heif" 
+            hidden 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+          />
+          <input type="file" 
+          accept="image/*" 
+          capture="user" 
+          hidden ref={cameraInputRef} 
+          onChange={handleFileUpload} />
           
           <div className="mt-3">
             <button onClick={() => fileInputRef.current.click()} className="w-full text-left px-4 py-2 mt-5 rounded-none hover:bg-gray-700 transition flex items-center gap-3 text-sm">
@@ -454,7 +463,7 @@ function Navbar() {
             <div className="flex flex-col gap-6 mt-10">
               <button
                 onClick={handleSmartBooking}
-                className="shesco-btn w-full py-4 bg-blue-500 text-white font-bold text-lg rounded-xl border border-blue-500 hover:bg-transparent hover:text-blue-700 transition duration-300 cursor-pointer shadow-md"
+                className="shesco-btn w-full mb-10 py-4 bg-blue-500 text-white font-bold text-lg rounded-xl border border-blue-500 hover:bg-transparent hover:text-blue-700 transition duration-300 cursor-pointer shadow-md"
               >
                 Book Now
               </button>
