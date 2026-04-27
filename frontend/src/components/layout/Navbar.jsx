@@ -178,7 +178,7 @@ function Navbar() {
       
       // Make sure this URL matches your backend setup! 
       // e.g., http://localhost:5000/api/profile-pic or wherever your route is mounted
-      const response = await fetch("http://localhost:5000/api/auth/profile-pic", {
+      const response = await fetch("https://myhygiene-backend.onrender.com/api/auth/profile-pic", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}` // Send token to pass the 'protect' middleware
