@@ -181,7 +181,7 @@ function Navbar() {
               {open ? <X size={28} /> : <AlignLeft size={28} strokeWidth={2.5} />}
             </button>
             
-            {/* DESKTOP ONLY Left Side Hamburger (As requested) */}
+            {/* DESKTOP ONLY Left Side Hamburger */}
             <div className="hidden md:block relative" ref={leftMenuRef}>
               <button 
                 onClick={(e) => {
@@ -194,7 +194,7 @@ function Navbar() {
               </button>
 
               {/* Left Side Dropdown Menu */}
-              <div className={`absolute top-[60px] left-[-25px] h-[calc(100vh-80px)] flex flex-col gap-48 w-60 bg-[#f0b000] border-r-2 border-t-4 rounded-tr-2xl border-blue-600 shadow-xl rounded-b py-4 transition-all duration-300 ease-in-out ${
+              <div className={`absolute top-[60px] left-[-25px] h-[calc(100vh-80px)] flex flex-col gap-48 w-60 bg-[#f0b000] border-r-2 border-t-4 rounded-tr-2xl border-blue-600 shadow-xl rounded-b py-4 transition-all duration-[800ms] ease-in-out ${
                 leftMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
               }`}>
                 <div>
