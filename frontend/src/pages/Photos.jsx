@@ -1,17 +1,11 @@
 import { useState, useRef, useEffect } from "react"
 import PageWrapper from "../components/PageWrapper"
 import Skeleton from "../components/Skeleton"
+import API from "../api" // Ensure this is imported!
 
-function Photos() {
-
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 3000)
-  }, [])
-
-  const photos = [
-    "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993567/Img1_djwcln.jpg",
+// Moved outside component so it doesn't recreate on every render
+const hardcodedPhotos = [
+  "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993567/Img1_djwcln.jpg",
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993779/Img52_pu7tzn.jpg",
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993566/Img2_r8cmmw.jpg",
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993605/Img8_okxli3.jpg",
@@ -39,23 +33,46 @@ function Photos() {
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993660/Img20_wwicne.jpg",
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993641/Img21_gjwp7x.jpg",
     "https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993656/Img25_knxzvp.jpg",
-  ]
+];
 
+function Photos() {
+  const [loading, setLoading] = useState(true)
+  const [photos, setPhotos] = useState([]) // dynamic state
   const [showPhotos, setShowPhotos] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(null)
+
+  // Fetch dynamic photos from backend and merge with hardcoded ones
+  useEffect(() => {
+    const fetchDynamicPhotos = async () => {
+      try {
+        const { data } = await API.get("/posts");
+        const postsArray = data.posts || data;
+        
+        // Filter out only posts that are photos and have a valid URL
+        const dynamicPhotos = postsArray
+          .filter(post => post.mediaType === "photo" && post.url)
+          .map(post => post.url);
+
+        // Put new dynamic photos FIRST, followed by the hardcoded ones
+        setPhotos([...dynamicPhotos, ...hardcodedPhotos]);
+      } catch (error) {
+        console.error("Failed to fetch gallery photos:", error);
+        setPhotos(hardcodedPhotos); // fallback to just hardcoded if backend fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDynamicPhotos();
+  }, []);
 
   // 👉 Swipe state
   const touchStartX = useRef(0)
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
 
-  const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % photos.length)
-  }
-
-  const prev = () => {
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
-  }
+  const next = () => setCurrentIndex((prev) => (prev + 1) % photos.length)
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX
@@ -70,10 +87,8 @@ function Photos() {
 
   const handleTouchEnd = () => {
     setIsDragging(false)
-
     if (dragX < -80) next()
     else if (dragX > 80) prev()
-
     setDragX(0)
   }
 
@@ -84,10 +99,9 @@ function Photos() {
       if (e.key === "ArrowLeft") prev()
       if (e.key === "Escape") setCurrentIndex(null)
     }
-
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [currentIndex])
+  }, [currentIndex, photos.length])
 
   useEffect(() => {
     if (showPhotos || currentIndex !== null) {
@@ -95,9 +109,7 @@ function Photos() {
     } else {
       document.body.style.overflow = "auto"
     }
-    return () => {
-      document.body.style.overflow = "auto"
-    }
+    return () => { document.body.style.overflow = "auto" }
   }, [showPhotos, currentIndex])
 
   return (
@@ -106,19 +118,15 @@ function Photos() {
 
         {/* HEADER */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-semibold mb-4">
-            Our Photo Gallery
-          </h1>
-          <p className="text-gray-600 md:text-lg max-w-2xl mx-auto">
-            Take a look at some of our work!
-          </p>
+          <h1 className="text-3xl md:text-5xl font-semibold mb-4">Our Photo Gallery</h1>
+          <p className="text-gray-600 md:text-lg max-w-2xl mx-auto">Take a look at some of our work!</p>
         </div>
 
         {/* FEATURED */}
         <section className="text-center mb-16">
           {loading ? (
             <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
-          ) : (
+          ) : photos.length > 0 && (
             <img
               src={photos[0]}
               onClick={() => setCurrentIndex(0)}
@@ -159,14 +167,7 @@ function Photos() {
         {/* FULLSCREEN SLIDER */}
         {currentIndex !== null && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center overflow-hidden z-50">
-
-            <button
-              onClick={() => setCurrentIndex(null)}
-              className="fixed top-5 right-6 text-white text-3xl z-50"
-            >
-              ✕
-            </button>
-
+            <button onClick={() => setCurrentIndex(null)} className="fixed top-5 right-6 text-white text-3xl z-50">✕</button>
             <div
               className="flex"
               style={{
@@ -179,14 +180,10 @@ function Photos() {
             >
               {photos.map((src, i) => (
                 <div key={i} className="min-w-full flex justify-center items-center">
-                  <img
-                    src={src}
-                    className="max-w-[90%] max-h-[90%] rounded-xl"
-                  />
+                  <img src={src} className="max-w-[90%] max-h-[90%] rounded-xl" />
                 </div>
               ))}
             </div>
-
           </div>
         )}
 
@@ -195,17 +192,11 @@ function Photos() {
   )
 }
 
-/* MODAL */
 function Modal({ children, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
       <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
-        <button
-          onClick={onClose}
-          className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl z-50"
-        >
-          ✕
-        </button>
+        <button onClick={onClose} className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl z-50">✕</button>
         {children}
       </div>
     </div>

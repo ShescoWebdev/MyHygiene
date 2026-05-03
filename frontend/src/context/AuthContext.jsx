@@ -25,9 +25,15 @@ export const AuthProvider = ({ children }) => {
 
   // THE LOGIN FUNCTION
   const login = (userData, token) => {
-    // Save current session
-    localStorage.setItem("user", JSON.stringify(userData));
+    // If for some reason userData is missing the role, we check the raw data
+    const finalUser = {
+      ...userData,
+      role: userData.role || "user" 
+    };
+
+    localStorage.setItem("user", JSON.stringify(finalUser));
     localStorage.setItem("token", token);
+    setUser(finalUser);
     
     // Handle Saved Accounts History
     const existingAccountsStr = localStorage.getItem("savedAccounts");

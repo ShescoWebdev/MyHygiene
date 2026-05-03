@@ -70,12 +70,18 @@ function Footer() {
 
           {/* Render Admin Link ONLY if role is admin */}
           {user?.role === "admin" && (
-          <NavLink to="/admin/dashboard" className="mt-2 hover:text-yellow-400 transition">
+          <NavLink to="/admin" className="mt-2 text-gray-400 hover:text-yellow-400 transition md:text-center">
             <hr className="border-gray-700 mb-2"/>
             MyHygiene Dashboard
             <hr className="border-gray-700 mt-2"/>
           </NavLink>
-         )}
+          )}
+
+          <NavLink to="/hub" className="text-gray-400 hover:text-yellow-400 transition md:text-center">
+            <hr className="border-gray-700 mb-2"/>
+            MyHygiene Hub
+            <hr className="border-gray-700 mt-2"/>
+          </NavLink>
         </div>
 
         {/* CONTACT */}

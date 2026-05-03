@@ -2,12 +2,13 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 import { AuthContext } from "../context/AuthContext";
+import PageWrapper from "../components/PageWrapper";
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Grab the login function from our global brain
+  // Grab the login function from our global brain (AuthContext)
   const { login } = useContext(AuthContext); 
 
   const searchParams = new URLSearchParams(location.search);
@@ -24,8 +25,8 @@ export default function Auth() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "", // Added phone
-    address: "", // Added address
+    phone: "",
+    address: "",
     password: "",
     confirmPassword: "", 
   });
@@ -73,16 +74,18 @@ export default function Auth() {
           password: form.password,
         });
 
-        console.log("LOGIN RESPONSE FROM BACKEND:", data);
+        // console.log("LOGIN RESPONSE FROM BACKEND:", data);
+        // console.log("FRESH LOGIN DATA:", user);
 
         // 1. Package the flat data into a clean user object (now including phone and address)
         const loggedInUser = {
           _id: data._id,
           name: data.name,
           email: data.email,
-          phone: data.phone,     // Added phone
-          address: data.address, // Added address
-          profilePic: data.profilePic || null 
+          phone: data.phone,
+          address: data.address,
+          profilePic: data.profilePic || null,
+          role: data.role || "user"
         };
 
         // 2. Pass the packaged user AND the token to the context
@@ -95,12 +98,10 @@ export default function Auth() {
         const { data } = await API.post("/auth/register", {
           name: form.name,
           email: form.email,
-          phone: form.phone,       // Sent to backend
-          address: form.address,   // Sent to backend
+          phone: form.phone,      
+          address: form.address,
           password: form.password,
         });
-
-        console.log("BACKEND RESPONSE:", data);
 
         // If backend auto-logs them in upon registration and sends a token back:
         if (data.token) {
@@ -109,7 +110,9 @@ export default function Auth() {
              name: form.name, 
              email: form.email, 
              phone: form.phone, 
-             address: form.address 
+             address: form.address,
+             profilePic: data.profilePic || null,
+             role: data.role || "user"
            };
            
            // Use the context login function here too
@@ -140,6 +143,7 @@ export default function Auth() {
   };
 
   return (
+    <PageWrapper>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 md:mt-[-5vh] md:pt-10 pt-5">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg space-y-8 transition-all duration-300">
         
@@ -193,7 +197,6 @@ export default function Auth() {
               />
             </div>
 
-            {/* NEW: Phone Field (Sign Up Only) */}
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
@@ -209,7 +212,6 @@ export default function Auth() {
               </div>
             )}
 
-            {/* NEW: Address Field (Sign Up Only) */}
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Residential Address</label>
@@ -297,5 +299,6 @@ export default function Auth() {
         </div>
       </div>
     </div>
+    </PageWrapper>
   );
 }

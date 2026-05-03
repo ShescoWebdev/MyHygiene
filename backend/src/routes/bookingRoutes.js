@@ -2,7 +2,6 @@ import express from "express";
 import {
   createBooking,
   deleteBooking,
-//   getAllBookings,
   getMyBookings,
   updateBookingStatus,
 } from "../controllers/bookingController.js";

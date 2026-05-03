@@ -1,257 +1,97 @@
-      // THIRD
-      import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
-const sendEmail = async (booking) => {
+const sendEmail = async (booking, isUpdate = false) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
-    secure: true, // Use SSL
-    family: 4,    // Forces IPv4 instead of IPv6
+    secure: true, 
+    family: 4,    
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
   });
 
-  // Format the Date
   const d = new Date(booking.date);
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   
   const formattedDate = booking.date 
     ? `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
     : "Not specified";
 
   const timeStr = booking.time || "Not specified";
+  
+  // This pulls your frontend URL from the .env file (e.g., http://localhost:5173)
+  const clientURL = process.env.FRONTEND_URL || "http://localhost:5173"; 
 
-  // Email to team
-  await transporter.sendMail({
-    from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_USER,
-    subject: "🧹 New Booking Received",
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height:1.6;">
-        <h2 style="color:#f0b000;">MyHygiene Booking</h2>
-        <p>A new booking has been received. Details below:</p>
+  // --- DETERMINE CUSTOMER EMAIL CONTENT ---
+  let subject = "We've received your booking request! - MyHygiene";
+  let messageBody = `<p>Hello ${booking.name}, we've successfully received your cleaning request! Our administrative team is currently reviewing your details. Hang tight— please do not resubmit your request. We will notify you as soon as your booking is confirmed. Thank you as you await our response!</p>`;
 
-        <hr/>
-
-        <p><strong>Name:</strong> ${booking.name}</p>
-        <p><strong>Phone:</strong> ${booking.phone}</p>
-        <p><strong>Email:</strong> ${booking.email}</p>
-        <p><strong>Address:</strong> ${booking.address}</p>
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Time:</strong> ${timeStr}</p>
-        <p><strong>Service:</strong> ${booking.service}</p>
-        <p><strong>Items:</strong> ${booking.items}</p>
-        <p><strong>Instructions:</strong> ${booking.instructions}</p>
-
-        <hr/>
-        <p style="color:gray;">This message was sent from MyHygiene system.</p>
-      </div>
-    `,
-  });
+  if (isUpdate) {
+    if (booking.status === "Confirmed") {
+      subject = "Your MyHygiene Booking is CONFIRMED!";
+      messageBody = `<p>Great news, ${booking.name}! Your MyHygiene booking for <strong>${booking.service}</strong> has been officially confirmed for <strong>${formattedDate}</strong>.</p>
+                     <p>Our team is scheduled and ready to make your space shine. Please keep your phone nearby, as we may try to call or email you if we need any additional details before our arrival. Thank you for choosing MyHygiene!</p>`;
+    } else if (booking.status === "Completed") {
+      subject = "Service Completed - Thank You from MyHygiene!";
+      messageBody = `<p>Hello ${booking.name}, thank you for choosing MyHygiene! Your cleaning session is now complete, and we hope we served you well.</p>
+                     <p>We'd love to hear about your experience. Please consider leaving us a quick review to let us know how we did!</p>
+                     <p><a href="${clientURL}/leave-review" style="display:inline-block; padding:10px 20px; background-color:#f0b000; color:#000; text-decoration:none; font-weight:bold; border-radius:5px; margin-top:10px;">Leave a Review</a></p>`;
+    } else {
+      return; 
+    }
+  }
 
   // Email to customer
   await transporter.sendMail({
     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
     to: booking.email,
-    subject: "Booking Confirmation - MyHygiene",
+    subject: subject,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height:1.6;">
-        <h2 style="color:#f0b000;">Booking Confirmed</h2>
-        <p>Dear ${booking.name},</p>
-
-        <p>Thank you for booking with MyHygiene. We have received your request and will contact you shortly to confirm the final details.</p>
-
+      <div style="font-family: Arial, sans-serif; line-height:1.6; color: #333;">
+        <h2 style="color:#f0b000;">${subject}</h2>
+        ${messageBody}
         <br/>
-        <p><strong>Service:</strong> ${booking.service}</p>
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Time:</strong> ${timeStr}</p>
-
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px;">
+          <p style="margin: 0 0 10px 0;"><strong>Service:</strong> ${booking.service}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Date:</strong> ${formattedDate}</p>
+          <p style="margin: 0 0 10px 0;"><strong>Time:</strong> ${timeStr}</p>
+          <p style="margin: 0;"><strong>Status:</strong> <span style="color: #0056b3; font-weight:bold;">${booking.status}</span></p>
+        </div>
         <br/>
-        <p>We look forward to serving you.</p>
-
-        <p><strong>MyHygiene Team</strong></p>
+        <p><strong>The MyHygiene Team</strong></p>
       </div>
     `,
   });
+
+  // --- TEAM NOTIFICATION (Only on NEW bookings) ---
+  if (!isUpdate) {
+    await transporter.sendMail({
+      from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER, // Sends to your admin email
+      subject: "🧹 Action Required: New Booking Received",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.6;">
+          <h2 style="color:#f0b000;">New MyHygiene Booking</h2>
+          <p>A new booking has been received and is waiting for your approval.</p>
+          
+          <p><a href="${clientURL}/admin" style="display:inline-block; padding:12px 24px; background-color:#0056b3; color:#fff; text-decoration:none; font-weight:bold; border-radius:5px; margin-bottom:15px;">Go to Admin Dashboard to Confirm</a></p>
+          
+          <hr/>
+          <p><strong>Name:</strong> ${booking.name}</p>
+          <p><strong>Phone:</strong> ${booking.phone}</p>
+          <p><strong>Email:</strong> ${booking.email}</p>
+          <p><strong>Address:</strong> ${booking.address}</p>
+          <p><strong>Date:</strong> ${formattedDate}</p>
+          <p><strong>Time:</strong> ${timeStr}</p>
+          <p><strong>Service:</strong> ${booking.service}</p>
+          <hr/>
+        </div>
+      `,
+    });
+  }
 };
 
 export default sendEmail;
-
-
-
-
-
-
-
-
-
-
-
-
-            // SECOND
-// import nodemailer from "nodemailer";
-
-// const sendEmail = async (booking) => {
-//   const transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     port: 465,
-//     secure: true, // Use SSL
-//     family: 4,    // Forces IPv4 instead of IPv6
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//   });
-
-//   // 1. Convert the ugly string into a real Date object
-//   const dateObj = new Date(booking.date);
-
-//   // 2. Extract and format just the Date (e.g., Wed, April 15, 2026)
-//   const formattedDate = dateObj.toLocaleDateString("en-US", {
-//     weekday: "short",
-//     month: "long",
-//     day: "numeric",
-//     year: "numeric",
-//   });
-
-//   // 3. Extract and format just the Time (e.g., 4:00 PM)
-//   const formattedTime = dateObj.toLocaleTimeString("en-US", {
-//     hour: "numeric",
-//     minute: "2-digit",
-//     hour12: true,
-//   });
-
-//   // Email to team
-//   await transporter.sendMail({
-//     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-//     to: process.env.EMAIL_USER,
-//     subject: "🧹 New Booking Received",
-//     html: `
-//       <div style="font-family: Arial, sans-serif; line-height:1.6;">
-//         <h2 style="color:#f0b000;">MyHygiene Booking</h2>
-//         <p>A new booking has been received. Details below:</p>
-
-//         <hr/>
-
-//         <p><strong>Name:</strong> ${booking.name}</p>
-//         <p><strong>Phone:</strong> ${booking.phone}</p>
-//         <p><strong>Email:</strong> ${booking.email}</p>
-//         <p><strong>Service:</strong> ${booking.service}</p>
-//         <p><strong>Address:</strong> ${booking.address}</p>
-//         <p><strong>Date:</strong> ${formattedDate}</p>
-//         <p><strong>Time:</strong> ${formattedTime}</p>
-//         <p><strong>Items:</strong> ${booking.items}</p>
-//         <p><strong>Instructions:</strong> ${booking.instructions}</p>
-
-//         <hr/>
-//         <p style="color:gray;">This message was sent from MyHygiene system.</p>
-//       </div>
-//     `,
-//   });
-
-//   // Email to customer
-//   await transporter.sendMail({
-//     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-//     to: booking.email,
-//     subject: "Booking Confirmation - MyHygiene",
-//     html: `
-//       <div style="font-family: Arial, sans-serif; line-height:1.6;">
-//         <h2 style="color:#f0b000;">Booking Confirmed</h2>
-//         <p>Dear ${booking.name},</p>
-
-//         <p>Thank you for booking with MyHygiene. We have received your request and will contact you shortly to confirm the final details.</p>
-
-//         <br/>
-//         <p><strong>Service:</strong> ${booking.service}</p>
-//         <p><strong>Date:</strong> ${formattedDate}</p>
-//         <p><strong>Time:</strong> ${formattedTime}</p>
-
-//         <br/>
-//         <p>We look forward to serving you.</p>
-
-//         <p><strong>MyHygiene Team</strong></p>
-//       </div>
-//     `,
-//   });
-// };
-
-// export default sendEmail;
-
-
-
-
-
-        // FIRST
-// import nodemailer from "nodemailer";
-
-// const sendEmail = async (booking) => {
-//   const transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     port: 465,
-//     secure: true, // Use SSL
-//     family: 4,    // Forces IPv4 instead of IPv6
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//   });
-
-//   // Email to team
-//   await transporter.sendMail({
-//     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-//     to: process.env.EMAIL_USER,
-//     subject: "🧹 New Booking Received",
-//     html: `
-//       <div style="font-family: Arial, sans-serif; line-height:1.6;">
-//         <h2 style="color:#f0b000;">MyHygiene Booking</h2>
-//         <p>A new booking has been received. Details below:</p>
-
-//         <hr/>
-
-//         <p><strong>Name:</strong> ${booking.name}</p>
-//         <p><strong>Phone:</strong> ${booking.phone}</p>
-//         <p><strong>Email:</strong> ${booking.email}</p>
-//         <p><strong>Service:</strong> ${booking.service}</p>
-//         <p><strong>Address:</strong> ${booking.address}</p>
-//         <p><strong>Date:</strong> ${booking.date}</p>
-//         <p><strong>Items:</strong> ${booking.items}</p>
-//         <p><strong>Instructions:</strong> ${booking.instructions}</p>
-
-//         <hr/>
-//         <p style="color:gray;">This message was sent from MyHygiene system.</p>
-//       </div>
-//     `,
-//   });
-
-//   // Email to customer
-//   await transporter.sendMail({
-//     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-//     to: booking.email,
-//     subject: "Booking Confirmation - MyHygiene",
-//     html: `
-//       <div style="font-family: Arial, sans-serif; line-height:1.6;">
-//         <h2 style="color:#f0b000;">Booking Confirmed</h2>
-//         <p>Dear ${booking.name},</p>
-
-//         <p>Thank you for booking with MyHygiene. We have received your request and will contact you shortly to confirm the final details.</p>
-
-//         <br/>
-//         <p><strong>Service:</strong> ${booking.service}</p>
-//         <p><strong>Date:</strong> ${booking.date}</p>
-
-//         <br/>
-//         <p>We look forward to serving you.</p>
-
-//         <p><strong>MyHygiene Team</strong></p>
-//       </div>
-//     `,
-//   });
-// };
-
-// export default sendEmail;

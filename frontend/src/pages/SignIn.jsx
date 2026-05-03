@@ -1,14 +1,15 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext"; // Adjust path as needed
-import { Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"; // Added Phone and MapPin
-import API from "../api"; // Adjust to your axios/fetch instance
+import { AuthContext } from "../context/AuthContext";
+import { Mail, Lock, User, Phone, MapPin, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import API from "../api";
 import Swal from "sweetalert2";
+import PageWrapper from "../components/PageWrapper";
 
 export default function SignIn() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state for password toggle
+  const [showPassword, setShowPassword] = useState(false);
   
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -16,8 +17,8 @@ export default function SignIn() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",     // Added phone
-    address: "",   // Added address
+    phone: "",
+    address: "",
     password: "",
   });
 
@@ -38,9 +39,10 @@ export default function SignIn() {
         _id: data._id,
         name: data.name,
         email: data.email,
-        phone: data.phone,       // Catching phone
-        address: data.address,   // Catching address
+        phone: data.phone,
+        address: data.address,
         profilePic: data.profilePic || null,
+        role: data.role || "user",
       };
 
       login(userData, data.token);
@@ -66,7 +68,8 @@ export default function SignIn() {
   };
 
   return (
-    // Changed to flex-col for mobile, md:flex-row for desktop, and added gap-10
+    <PageWrapper>
+    {/* Changed to flex-col for mobile, md:flex-row for desktop, and added gap-10 */}
     <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row items-center justify-center md:justify-between md:px-40 px-6 py-24 gap-10">
       
       {/* Header Section - Now outside the card and flexed to the left on desktop */}
@@ -212,5 +215,6 @@ export default function SignIn() {
       </div>
 
     </div>
+    </PageWrapper>
   );
 }

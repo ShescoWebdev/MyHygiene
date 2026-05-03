@@ -1,4 +1,3 @@
-// THIRD VERSION
 import twilio from "twilio";
 
 const client = twilio(
@@ -6,8 +5,8 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
-export const sendWhatsApp = async (booking) => {
-  // Format the Date to a more human-friendly format
+export const sendWhatsApp = async (booking, isUpdate = false) => {
+  // Format the Date
   const d = new Date(booking.date);
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
@@ -19,81 +18,24 @@ export const sendWhatsApp = async (booking) => {
     ? `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
     : "Not specified";
 
-  // Get the specific time
   const timeStr = booking.time || "Not specified";
+
+  let message = "";
+  
+  if (!isUpdate) {
+    // Original Team Notification for NEW bookings
+    message = `🧹 New Booking Received. Details below:\nName: ${booking.name}\nService: ${booking.service}\nAddress: ${booking.address}\nDate: ${formattedDate}\nTime: ${timeStr}`;
+  } else if (booking.status === "Confirmed") {
+    // Optional: Let the team know it was confirmed
+    message = `✅ Update: Booking CONFIRMED for ${booking.name}.\nService: ${booking.service}\nDate: ${formattedDate}`;
+  } else {
+    // Don't send WhatsApp messages for other status changes
+    return;
+  }
 
   await client.messages.create({
     from: "whatsapp:+14155238886", // Twilio sandbox
-    to: "whatsapp:+2348145364748", // team number (Gladys. For the team)
-    body: `🧹 New Booking Received. Details below:
-Name: ${booking.name}
-Service: ${booking.service}
-Address: ${booking.address}
-Date: ${formattedDate}
-Time: ${timeStr}`,
+    to: "whatsapp:+2348145364748", // team number
+    body: message,
   });
-};              
-
-
-
-// SECOND VERSION
-// import twilio from "twilio";
-
-// const client = twilio(
-//   process.env.TWILIO_SID,
-//   process.env.TWILIO_AUTH_TOKEN
-// );
-
-// export const sendWhatsApp = async (booking) => {
-//   // 1. Convert the ugly string into a real Date object
-//   const dateObj = new Date(booking.date);
-
-//   // 2. Extract and format just the Date (e.g., Wed, April 15, 2026)
-//   const formattedDate = dateObj.toLocaleDateString("en-US", {
-//     weekday: "short",
-//     month: "long",
-//     day: "numeric",
-//     year: "numeric",
-//   });
-
-//   // 3. Extract and format just the Time (e.g., 4:00 PM)
-//   const formattedTime = dateObj.toLocaleTimeString("en-US", {
-//     hour: "numeric",
-//     minute: "2-digit",
-//     hour12: true,
-//   });
-
-//   await client.messages.create({
-//     from: "whatsapp:+14155238886", // Twilio sandbox
-//     to: "whatsapp:+2348145364748", // team number (Gladys. For the team)
-//     body: `🧹 New Booking Received. Details below:
-// Name: ${booking.name}
-// Service: ${booking.service}
-// Address: ${booking.address}
-// Date: ${formattedDate}
-// Time: ${formattedTime}`,
-//   });
-// };
-
-
-
-
-// FIRST VERSION
-// import twilio from "twilio";
-
-// const client = twilio(
-//   process.env.TWILIO_SID,
-//   process.env.TWILIO_AUTH_TOKEN
-// );
-
-// export const sendWhatsApp = async (booking) => {
-//   await client.messages.create({
-//     from: "whatsapp:+14155238886", // Twilio sandbox
-//     to: "whatsapp:+2348145364748", // team number (Gladys. For the team)
-//     body: `🧹 New Booking Received. Details below:
-// Name: ${booking.name}
-// Service: ${booking.service}
-// Address: ${booking.address}
-// Date: ${booking.date}`,
-//   });
-// };
+};

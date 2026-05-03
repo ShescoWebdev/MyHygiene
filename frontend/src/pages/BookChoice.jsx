@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import "./BookChoice.css";
+import PageWrapper from "../components/PageWrapper";
 
 export default function BookChoice() {
   const navigate = useNavigate();
 
   return (
+    <PageWrapper>
     <div className="choice-container md:mt-[-5vh] pt-10">
       <div className="choice-box">
         <h2 className="choice-title">How would you like to proceed?</h2>
@@ -29,5 +31,6 @@ export default function BookChoice() {
         </div>
       </div>
     </div>
+    </PageWrapper>
   );
 }

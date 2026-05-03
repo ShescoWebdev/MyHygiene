@@ -37,32 +37,33 @@ export const registerUser = async (req, res) => {
     email: user.email,
     phone: user.phone,
     address: user.address,
-    profilePic: user.profilePic, // Added this
+    profilePic: user.profilePic,
     token: generateToken(user._id),
+    role: user.role,
   });
 };
 
 // Login
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
+
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       phone: user.phone,
       address: user.address,
-      profilePic: user.profilePic, // Added this
+      profilePic: user.profilePic,
       token: generateToken(user._id),
+      role: user.role || "user", // Fallback to "user" if it's missing
     });
   } else {
-    res.status(401).json({ message: "Invalid email or password" });
+    res.status(401).json({ message: "User Account Does Not Exist" });
   }
 };
-
 // NEW: Upload Profile Picture
 export const updateProfilePic = async (req, res) => {
   try {
@@ -100,7 +101,8 @@ export const updateProfilePic = async (req, res) => {
       phone: user.phone,
       address: user.address,
       profilePic: user.profilePic,
-      token: req.headers.authorization.split(" ")[1], // keep their current token
+      token: req.headers.authorization.split(" ")[1],
+      role: user.role,
     });
     
   } catch (error) {
