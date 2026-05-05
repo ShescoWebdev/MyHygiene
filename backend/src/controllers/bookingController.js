@@ -47,10 +47,17 @@ export const createBooking = async (req, res) => {
 
 // Get user bookings
 export const getMyBookings = async (req, res) => {
-  const bookings = await Booking.find({ user: req.user._id }).sort({
-    createdAt: -1,
-  });
-  res.json(bookings);
+  try {
+    // Check if user exists first!
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Not authorized, user missing" });
+    }
+
+    const bookings = await Booking.find({ user: req.user._id });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
 };
 
 // Delete booking
