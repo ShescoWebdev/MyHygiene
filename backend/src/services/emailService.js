@@ -22,8 +22,7 @@ const sendEmail = async (booking, isUpdate = false) => {
 
   const timeStr = booking.time || "Not specified";
   
-  // This pulls your frontend URL from the .env file (e.g., http://localhost:5173)
-  const clientURL = process.env.FRONTEND_URL || "http://localhost:5173"; 
+  const clientURL = process.env.FRONTEND_URL || "http://myhygiene.netlify.app"; 
 
   // --- DETERMINE CUSTOMER EMAIL CONTENT ---
   let subject = "We've received your booking request! - MyHygiene";

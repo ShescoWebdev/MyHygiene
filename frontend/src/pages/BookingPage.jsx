@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 
 function BookingPage() {
   const { user } = useContext(AuthContext);
-  console.log("Current user object:", user);
+  // console.log("Current user object:", user);
 
   const [form, setForm] = useState({
     name: "",
