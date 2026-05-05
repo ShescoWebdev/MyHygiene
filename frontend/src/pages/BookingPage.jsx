@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 
 function BookingPage() {
   const { user } = useContext(AuthContext);
-  console.log("Current user object:", user);
+  // console.log("Current user object:", user);
 
   const [form, setForm] = useState({
     name: "",
@@ -50,7 +50,7 @@ function BookingPage() {
   const formRef = useRef(null);
   const bookingsRef = useRef(null);
 
-  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement", "Suits", "Shirts", "Skirts", "Trousers", "Bedspreads", "Others (see other items field below)"];
+  const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement", "Suits", "Shirts", "Skirts", "Trousers", "Bedspreads", "Others (see other items field below to type in other items or areas)"];
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 5000);

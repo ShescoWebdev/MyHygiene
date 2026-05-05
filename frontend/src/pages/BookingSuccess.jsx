@@ -17,9 +17,9 @@ function BookingSuccess() {
           <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
             ✓
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Booking Received!</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Booking Sent!</h1>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            Thank you for booking with <strong>MyHygiene</strong>. Your request has been received, and our team will contact you shortly to confirm the details.
+            Thank you for booking with <strong>MyHygiene</strong>. Your request has been sent, and a confirmation will be sent to your email shortly. Our team will review your booking and get back to you within 24-48 hours. We look forward to providing you with a sparkling clean home!
           </p>
           <Link
             to="/"
