@@ -36,7 +36,7 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-// ROUTES 
+// ROUTES
 
 // Public route to view posts 
 router.get("/", getAllPosts);
