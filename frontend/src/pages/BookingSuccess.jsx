@@ -18,7 +18,7 @@ function BookingSuccess() {
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Booking Sent!</h1>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            Thank you for booking with <strong>MyHygiene</strong>. Your request has been sent, and a pending confirmation message has been sent to your email. Our team will review your booking and get back to you within 24-48 hours. We look forward to providing you with a sparkling clean home!
+            Thank you for booking with <strong>MyHygiene</strong>. Your request has been sent, please check your email for a pending confirmation message. Our team will review your booking and get back to you within 24-48 hours. We look forward to providing you with a sparkling clean home!
           </p>
           <Link
             to="/"

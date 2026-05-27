@@ -69,10 +69,8 @@ export default function SignIn() {
 
   return (
     <PageWrapper>
-    {/* Changed to flex-col for mobile, md:flex-row for desktop, and added gap-10 */}
     <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row items-center justify-center md:justify-between md:px-40 px-6 py-24 gap-10">
       
-      {/* Header Section - Now outside the card and flexed to the left on desktop */}
       <div className="md:w-1/2 text-center md:text-left">
         <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
           {isLogin ? "Welcome Back" : "Join Us Today"}
@@ -84,12 +82,10 @@ export default function SignIn() {
         </p>
       </div>
 
-      {/* Form Section - Flexed to the right on desktop */}
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             
-            {/* Name Field (Only for Sign Up) */}
             {!isLogin && (
               <div className="relative">
                 <User className="absolute left-3 top-3.5 text-gray-400" size={20} />
@@ -104,7 +100,6 @@ export default function SignIn() {
               </div>
             )}
 
-            {/* Email Field */}
             <div className="relative">
               <Mail className="absolute left-3 top-3.5 text-gray-400" size={20} />
               <input
@@ -117,7 +112,6 @@ export default function SignIn() {
               />
             </div>
 
-            {/* NEW: Phone Field (Only for Sign Up) */}
             {!isLogin && (
               <div className="relative">
                 <Phone className="absolute left-3 top-3.5 text-gray-400" size={20} />
@@ -132,7 +126,6 @@ export default function SignIn() {
               </div>
             )}
 
-            {/* NEW: Address Field (Only for Sign Up) */}
             {!isLogin && (
               <div className="relative">
                 <MapPin className="absolute left-3 top-3.5 text-gray-400" size={20} />
@@ -147,19 +140,16 @@ export default function SignIn() {
               </div>
             )}
 
-            {/* Password Field with Eye Icon */}
             <div className="relative">
               <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
               <input
-                type={showPassword ? "text" : "password"} // Dynamic type based on state
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Password"
                 required
-                // Added pr-12 so text doesn't type under the eye icon
                 className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f0b000] focus:outline-none transition"
                 onChange={handleChange}
               />
-              {/* Toggle Password Button */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -169,7 +159,7 @@ export default function SignIn() {
               </button>
             </div>
 
-            {/* Forgotten Password Link */}
+            {/* Forgotten Password Link
             {isLogin && (
               <div className="text-right">
                 <button 
@@ -180,7 +170,7 @@ export default function SignIn() {
                   Forgotten Password?
                 </button>
               </div>
-            )}
+            )} */}
 
             {/* Submit Button */}
             <button

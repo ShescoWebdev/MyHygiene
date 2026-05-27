@@ -7,8 +7,8 @@ const storage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    // 1. Determine the prefix based on the file type
-    let prefix = "Doc"; // A fallback just in case it's neither
+    // To determine the prefix based on the file type
+    let prefix = "Doc";
     
     if (file.mimetype.startsWith("image/")) {
       prefix = "Img";
@@ -16,10 +16,10 @@ const storage = multer.diskStorage({
       prefix = "Vid";
     }
 
-    // 2. Generate the unique string
+    // To generate the unique string
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
     
-    // 3. Piece it all together: Img-16843...984.jpg
+    // To piece it all together: Img-16843...984.jpg
     const finalFileName = `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`;
     
     cb(null, finalFileName);
