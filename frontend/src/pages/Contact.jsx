@@ -6,20 +6,20 @@ import PageWrapper from "../components/PageWrapper";
 function Contact() {
   const navigate = useNavigate();
 
-  // Smart booking logic: Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+  // To determine what happens when user clicks the book button
   const handleSmartBooking = () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
 
     if (token && user) {
-      //  Fully logged in -> Straight to booking
+      // If user is logged in, navigate to booking
       navigate("/booking");
     } else if (!token && user) {
-      // Session expired / Logged out, but we remember them -> To Login (with redirect to booking after login)
+      // If session expired/logged out,but user exists, navigate to auth which redirects to booking
       navigate("/auth?redirect=/booking");
     } else {
-      // Completely new user -> To Book Choice (where they can choose to book as guest or create account)
+      // If completely new user, navigate to book choice
       navigate("/book-choice");
     }
   };
@@ -28,7 +28,7 @@ function Contact() {
     <PageWrapper>
       <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16 md:mt-[-1.7rem]">
 
-      {/* HEADER */}
+      {/* Header */}
       <div className="text-center max-w-3xl mx-auto">
         <h1 className="text-3xl md:text-5xl font-semibold mb-4">
           Get In Touch With Us ✨
@@ -38,10 +38,10 @@ function Contact() {
         </p>
       </div>
 
-      {/* QUICK CONTACT OPTIONS */}
+      {/* Quick contact options*/}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
 
-        {/* CALL */}
+        {/* Call */}
         <a href="tel:08145364748"
           className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition hover:scale-105 flex flex-col items-center text-center">
           <Phone size={30} className="text-blue-500 mb-3" />
@@ -49,7 +49,7 @@ function Contact() {
           <p className="text-gray-500 text-sm">Instant response</p>
         </a>
 
-        {/* WHATSAPP */}
+        {/* Whatsapp */}
         <a href="https://wa.me/2348145364748" target="_blank"
           className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition hover:scale-105 flex flex-col items-center text-center">
           <FaWhatsapp size={30} className="text-green-500 mb-3" />
@@ -57,7 +57,7 @@ function Contact() {
           <p className="text-gray-500 text-sm">Chat with us directly</p>
         </a>
 
-        {/* EMAIL */}
+        {/* Email */}
         <a href="mailto:myhygieneservices@gmail.com"
           className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition hover:scale-105 flex flex-col items-center text-center">
           <Mail size={30} className="text-red-500 mb-3" />
@@ -67,7 +67,7 @@ function Contact() {
 
       </div>
 
-      {/* SERVICE SELECTION */}
+      {/* Service Section */}
       <div className="mt-16 max-w-5xl mx-auto">
 
         <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-center">

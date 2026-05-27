@@ -1,19 +1,24 @@
 import nodemailer from "nodemailer";
 
 const sendEmail = async (booking, isUpdate = false) => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, 
-    family: 4,    
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
 
+  // To configure nodemailer transporter for Gmail SMTP
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false 
+  }
+});
+
+  // To format the booking date in a more readable way
   const d = new Date(booking.date);
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   
   const formattedDate = booking.date 
@@ -22,20 +27,20 @@ const sendEmail = async (booking, isUpdate = false) => {
 
   const timeStr = booking.time || "Not specified";
   
-  const clientURL = process.env.FRONTEND_URL || "http://myhygiene.netlify.app"; 
+  const clientURL = process.env.FRONTEND_URL || "http://localhost:5173"; 
 
-  // --- DETERMINE CUSTOMER EMAIL CONTENT ---
+  // To determine email content whether it's a new booking or an update
   let subject = "We've received your booking request! - MyHygiene";
-  let messageBody = `<p>Hello ${booking.name}, we've successfully received your cleaning request! Our administrative team is currently reviewing your details. Hang tight— please do not resubmit your request. We will notify you as soon as your booking is confirmed. Thank you as you await our response!</p>`;
+  let messageBody = `<p>Hello <strong>${booking.name}</strong>, we've successfully received your cleaning request! Our administrative team is currently reviewing your details. Hang tight— please do not resubmit your request. We will notify you as soon as your booking is confirmed. Thank you as you await our response!</p>`;
 
   if (isUpdate) {
     if (booking.status === "Confirmed") {
       subject = "Your MyHygiene Booking is CONFIRMED!";
-      messageBody = `<p>Great news, ${booking.name}! Your MyHygiene booking for <strong>${booking.service}</strong> has been officially confirmed for <strong>${formattedDate}</strong>.</p>
+      messageBody = `<p>Great news, <strong>${booking.name}</strong>! Your MyHygiene booking for <strong>${booking.service}</strong> has been officially confirmed for <strong>${formattedDate}</strong>.</p>
                      <p>Our team is scheduled and ready to make your space shine. Please keep your phone nearby, as we may try to call or email you if we need any additional details before our arrival. Thank you for choosing MyHygiene!</p>`;
     } else if (booking.status === "Completed") {
       subject = "Service Completed - Thank You from MyHygiene!";
-      messageBody = `<p>Hello ${booking.name}, thank you for choosing MyHygiene! Your cleaning session is now complete, and we hope we served you well.</p>
+      messageBody = `<p>Hello <strong>${booking.name}</strong>, thank you for choosing MyHygiene! Your cleaning session is now complete, and we hope we served you well.</p>
                      <p>We'd love to hear about your experience. Please consider leaving us a quick review to let us know how we did!</p>
                      <p><a href="${clientURL}/leave-review" style="display:inline-block; padding:10px 20px; background-color:#f0b000; color:#000; text-decoration:none; font-weight:bold; border-radius:5px; margin-top:10px;">Leave a Review</a></p>`;
     } else {
@@ -43,7 +48,7 @@ const sendEmail = async (booking, isUpdate = false) => {
     }
   }
 
-  // Email to customer
+  // To send the email to the customer
   await transporter.sendMail({
     from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
     to: booking.email,
@@ -65,11 +70,12 @@ const sendEmail = async (booking, isUpdate = false) => {
     `,
   });
 
-  // --- TEAM NOTIFICATION (Only on NEW bookings) ---
+  // To send an email to admin for new bookings
   if (!isUpdate) {
     await transporter.sendMail({
       from: `"MyHygiene" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Sends to your admin email
+      // Sends to admin email
+      to: process.env.EMAIL_USER,
       subject: "🧹 Action Required: New Booking Received",
       html: `
         <div style="font-family: Arial, sans-serif; line-height:1.6;">

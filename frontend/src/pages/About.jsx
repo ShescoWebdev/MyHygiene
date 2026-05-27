@@ -12,20 +12,20 @@ function About() {
     setTimeout(() => setLoading(false), 3000)
   }, [])
 
-  // Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+  // To handle the login state and redirect users accordingly
   const handleSmartBooking = () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
 
     if (token && user) {
-      //  Fully logged in, Straight to booking
+      // If user is logged in, navigate to booking
       navigate("/booking");
     } else if (!token && user) {
-      // Session expired / Logged out, but we remember them, To Login (with redirect to booking after login)
+      // If session expired/logged out,but user exists, navigate to auth which redirects to booking
       navigate("/auth?redirect=/booking");
     } else {
-      // Completely new user, To Book Choice (where they can choose to book as guest or create account)
+      // If completely new user, navigate to book-choice
       navigate("/book-choice");
     }
   };

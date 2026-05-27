@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: " https://myhygiene.onrender.com/api",
-});
+ export const BASE_URL = "http://localhost:5000";
+ 
+const API = axios.create({ baseURL: `${BASE_URL}/api` });
 
-// Attach token automatically
+// Attachs token automatically
 API.interceptors.request.use((req) => {
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 

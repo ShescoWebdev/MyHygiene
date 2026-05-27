@@ -8,7 +8,6 @@ import { AuthContext } from "../context/AuthContext";
 
 function BookingPage() {
   const { user } = useContext(AuthContext);
-  // console.log("Current user object:", user);
 
   const [form, setForm] = useState({
     name: "",
@@ -25,7 +24,7 @@ function BookingPage() {
     period: "AM",
   });
 
-  // AUTO-FILL: If user is logged in, fill the data instantly.
+  // To auto-fill form with user details if available
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -38,7 +37,7 @@ function BookingPage() {
     }
   }, [user]);
 
-  // SEPARATED STATES: Drafts (new form entries) vs History (fetched from DB)
+  // To manage both new draft bookings and past history bookings separately
   const [draftBookings, setDraftBookings] = useState([]);
   const [historyBookings, setHistoryBookings] = useState([]);
   const [editDraftIndex, setEditDraftIndex] = useState(null);
@@ -50,6 +49,7 @@ function BookingPage() {
   const formRef = useRef(null);
   const bookingsRef = useRef(null);
 
+  // Quick items for easy selection
   const quickItems = ["Kitchen", "Bathroom", "Toilet", "Bedroom", "Living Room", "Office Space", "Environnement", "Suits", "Shirts", "Skirts", "Trousers", "Bedspreads", "Others (see other items field below to type in other items or areas)"];
 
   useEffect(() => {
@@ -97,7 +97,7 @@ function BookingPage() {
       setDraftBookings([...draftBookings, newBooking]);
     }
 
-    // Reset form but keep the auto-filled user details intact
+    // To reset form after submission, but keep user details if available
     setForm({
       name: user?.name || "",
       phone: user?.phone || "",
@@ -113,11 +113,13 @@ function BookingPage() {
       period: "AM",
     });
 
+    // To scroll to bookings section after saving a draft, so users can see their saved booking immediately
     setTimeout(() => {
       bookingsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
+  // To edit a draft booking
   const handleEditDraft = (index) => {
     const booking = draftBookings[index];
     setForm({ ...booking, selectedItems: booking.selectedItems || [] });
@@ -127,6 +129,7 @@ function BookingPage() {
     }, 100);
   };
   
+  // To delete a draft booking
   const handleDeleteDraft = (index) => {
     Swal.fire({
       title: "Are you sure?",
@@ -145,15 +148,16 @@ function BookingPage() {
     });
   };
 
+  // To fetch user's past bookings from the backend when they log in, and set to history state
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem("token");
-      if(!token) return; // Don't fetch if no token
+      if(!token) return;
       
       const { data } = await API.get("/bookings/my", {
           headers: { Authorization: `Bearer ${token}` }
       });
-      // Set to history, not drafts!
+      // To set the fetched bookings to history state. 
       setHistoryBookings(data);
     } catch (err) {
       console.error(err);
@@ -164,7 +168,7 @@ function BookingPage() {
     fetchBookings();
   }, [user]);
 
-  // Handle Proceed: Drafts or History
+  // To handle proceeding with a booking, either from draft or history 
   const handleProceed = (booking, type, index) => {
     Swal.fire({
       title: "Confirm Booking",
@@ -180,7 +184,7 @@ function BookingPage() {
         try {
           const token = localStorage.getItem("token");
           
-          // In case history booking time format differs from drafts
+          // To ensure that we send the correct time format to the backend, either from draft or history 
           const bookingTime = booking.time || `${booking.hour}:${booking.minute} ${booking.period}`;
 
           const { data } = await API.post(
@@ -201,7 +205,7 @@ function BookingPage() {
 
           navigate("/booking-success", { state: { bookingSuccessful: true } });
           
-          // Only remove from screen if it was a draft. We leave history alone.
+          // To remove the booking from draft if it was saved, after successfully saving to backend
           if (type === "draft") {
             const updatedBookings = draftBookings.filter((_, i) => i !== index);
             setDraftBookings(updatedBookings);
@@ -225,7 +229,7 @@ function BookingPage() {
     <PageWrapper>
       <div className="min-h-screen bg-gray-50 py-10 px-4">
 
-      {/* HERO */}
+      {/* Hero */}
       <div>
         <h1 className="text-2xl md:text-5xl pt-10 text-center font-semibold">
           Book Your Service with MyHygiene
@@ -254,7 +258,7 @@ function BookingPage() {
         </marquee>
       </div>
 
-      {/* INSTRUCTION BANNER FOR LOGGED IN USERS */}
+      {/* Instruction banner for logged in users */}
       {user && (
         <div className="max-w-2xl mx-auto mt-12 mb-[-30px]">
           <div className="bg-blue-50 border-l-4 border-[#f0b000] p-5 rounded-r-xl shadow-sm">
@@ -268,7 +272,7 @@ function BookingPage() {
         </div>
       )}
 
-      {/* FORM */}
+      {/* Form */}
       <div ref={formRef} className="max-w-2xl mx-auto bg-white shadow-xl mt-20 md:mt-24 rounded-2xl p-6 border-t-4 border-[#f0b000]">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Book a Service</h2>
 
@@ -358,10 +362,10 @@ function BookingPage() {
         </form>
       </div>
 
-      {/* BOOKINGS LISTINGS */}
+      {/* Bookings listings */}
       <div ref={bookingsRef} className="max-w-2xl mx-auto mt-12 mb-20 space-y-12">
         
-        {/* NEW DRAFT BOOKINGS */}
+        {/* New Draft Bookings */}
         {(draftBookings.length > 0 || !user) && (
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Your New Bookings</h2>
@@ -407,7 +411,7 @@ function BookingPage() {
           </div>
         )}
 
-        {/* BOOKING HISTORY (ONLY IF LOGGED IN) */}
+        {/* Booking History */}
         {user && (
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-4 pt-6 border-t border-gray-300">Your Booking History</h2>
@@ -417,7 +421,7 @@ function BookingPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {historyBookings.map((b, index) => (
+                {Array.isArray(historyBookings) && historyBookings.map((b, index) => (
                   <div key={`history-${index}`} className="p-4 rounded-xl border-t-4 border-b-4 border-gray-400 shadow hover:shadow-md transition bg-white opacity-95">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-semibold text-gray-700">{b.name}</h3>

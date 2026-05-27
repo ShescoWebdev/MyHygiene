@@ -4,11 +4,12 @@ import { Menu, X, Camera, Upload, LogOut, UserPlus, AlignLeft } from "lucide-rea
 import SafeNavLink from "../SafeNavLink"
 import { AuthContext } from "../../context/AuthContext"
 import Swal from "sweetalert2"
+import API, { BASE_URL } from "../../api"
 
 function Navbar() {
   const [open, setOpen] = useState(false)
   
-  // NEW STATE: For the left-side desktop hamburger menu
+  // To handle the desktop menu
   const [leftMenuOpen, setLeftMenuOpen] = useState(false)
   const [mobileDropdown, setMobileDropdown] = useState(false)
 
@@ -50,7 +51,7 @@ function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close the new left menu if clicked outside
+  // To close the left menu if clicked outside
   useEffect(() => {
     const handleLeftMenuOutside = (e) => {
       if (leftMenuRef.current && !leftMenuRef.current.contains(e.target)) {
@@ -92,6 +93,7 @@ function Navbar() {
     }
   };
 
+  // To switch accounts
   const handleSwitchAccount = (account) => {
     login(account.user, account.token);
     setProfileDropdown(false);
@@ -101,15 +103,15 @@ function Navbar() {
       toast: true,
       position: "top-end",
       showConfirmButton: false,
-      timer: 1000, // Sped up a bit so they aren't waiting too long
+      timer: 1000,
       timerProgressBar: true,
       willClose: () => {
-        // This forces the hard reload to clear React state and starts them fresh at the top
         window.location.href = "/";
       }
     });
   };
 
+  // To logout with confirmation
   const handleLogoutClick = () => {
     setProfileDropdown(false); 
     setOpen(false); 
@@ -128,6 +130,7 @@ function Navbar() {
     });
   };
 
+  // To upload profile picture
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -167,13 +170,22 @@ function Navbar() {
     }
   };
 
+  const getProfilePic = (picUrl, name) => {
+  if (!picUrl) {
+    // If no picture exists, use the avatar fallback
+    return `https://ui-avatars.com/api/?name=${name || 'User'}&background=0D8ABC&color=fff&bold=true`;
+  }
+  // If it's an external link (like Google auth), return it. Otherwise, add backend URL.
+  return picUrl.startsWith("http") ? picUrl : `${BASE_URL}/${picUrl}`;
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 w-full z-50">
         <nav className="bg-[#f0b000] px-4 md:px-6 py-4 flex justify-between items-center shadow-md w-full">
 
           <div className="flex items-center gap-3 md:gap-4">
-            {/* MOBILE ONLY Main Menu Toggle */}
+            {/* Mobile menu toggle */}
             <button
               onClick={() => setOpen(!open)}
               className="text-black md:hidden cursor-pointer focus:outline-none"
@@ -181,7 +193,7 @@ function Navbar() {
               {open ? <X size={28} /> : <AlignLeft size={28} strokeWidth={2.5} />}
             </button>
             
-            {/* DESKTOP ONLY Left Side Hamburger */}
+            {/* Desktop menu toggle */}
             <div className="hidden md:block relative" ref={leftMenuRef}>
               <button 
                 onClick={(e) => {
@@ -193,7 +205,7 @@ function Navbar() {
                 {leftMenuOpen ? <X size={30} strokeWidth={2.5} /> : <AlignLeft size={30} strokeWidth={2.5} />}
               </button>
 
-              {/* Left Side Dropdown Menu */}
+              {/* Desktop dropdown menu */}
               <div className={`absolute top-[60px] left-[-25px] h-[calc(100vh-80px)] flex flex-col gap-48 w-60 bg-[#f0b000] border-r-2 border-t-4 rounded-tr-2xl border-blue-600 shadow-xl rounded-b py-4 transition-all duration-[800ms] ease-in-out ${
                 leftMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
               }`}>
@@ -233,7 +245,7 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Central Nav Links (Gallery removed) */}
+          {/* Desktop main nav links */}
           <div className="hidden md:flex space-x-6 items-center">
             <SafeNavLink to="/" className={linkStyle}>Home</SafeNavLink>
             <SafeNavLink to="/about" className={linkStyle}>About Us</SafeNavLink>
@@ -241,6 +253,7 @@ function Navbar() {
             <SafeNavLink to="/contact" className={linkStyle}>Contact Us</SafeNavLink>
           </div>
 
+           {/* Profile Picture Upload */}
           <div className="flex items-center gap-4 md:gap-5">
             {user ? (
               <div className="relative flex items-center" ref={profileRef}>
@@ -249,7 +262,7 @@ function Navbar() {
                   className="focus:outline-none transition-transform hover:scale-105"
                 >
                   <img 
-                    src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff&bold=true`} 
+                    src={getProfilePic(user.profilePic, user.name)} 
                     alt="Profile" 
                     className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover"
                   />
@@ -265,7 +278,7 @@ function Navbar() {
 
                   <div className="flex flex-col items-center mb-4 px-4 relative">
                     <div className="relative cursor-pointer group" onClick={() => setPicMenuOpen(!picMenuOpen)}>
-                      <img src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name}&background=0D8ABC&color=fff&bold=true`} alt="Profile" className="w-20 h-20 rounded-full border border-gray-600 mb-2 object-cover group-hover:opacity-80 transition" />
+                      <img src={getProfilePic(user.profilePic, user.name)} alt="Profile" className="w-20 h-20 rounded-full border border-gray-600 mb-2 object-cover group-hover:opacity-80 transition" />
                       <div className="absolute bottom-2 right-0 bg-gray-800 p-1.5 rounded-full border border-gray-600"><Camera size={14} className="text-white" /></div>
                     </div>
 
@@ -317,14 +330,14 @@ function Navbar() {
         )}
       </header>
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* Mobile menu overlay */}
       <div className={`fixed left-0 right-0 bottom-0 top-[100px] bg-black/40 backdrop-blur-[1.5px] z-40 transition-opacity duration-300 ${open ? "opacity-100 visible" : "opacity-0 invisible"}`} onClick={() => setOpen(false)} />
 
-      {/* MOBILE MENU DRAWER */}
+      {/* Mobile menu drawer */}
       <div className={`fixed left-0 top-[87px] h-[calc(100vh-100px)] w-[75%] bg-[#f0b000] z-50 transform transition-transform duration-[800ms] shadow-2xl ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col justify-between h-full px-6 py-6 pb-10 overflow-y-auto">
 
-          {/* Top: Standard Nav Links */}
+          {/* Mobile main nav links */}
           <div className="flex flex-col space-y-6 mt-2">
             <SafeNavLink to="/" className={linkStyle} onClick={() => setOpen(false)}>Home</SafeNavLink>
             <SafeNavLink to="/about" className={linkStyle} onClick={() => setOpen(false)}>About Us</SafeNavLink>
@@ -332,7 +345,7 @@ function Navbar() {
             <SafeNavLink to="/contact" className={linkStyle} onClick={() => setOpen(false)}>Contact Us</SafeNavLink>
           </div>
 
-          {/* Middle: Gallery & Hub */}
+          {/* Mobile gallery & hub */}
           <div className="flex flex-col space-y-6 mt-8 border-t border-black/20 pt-6">
             <div ref={mobileDropdownRef}>
               <button onClick={(e) => { e.stopPropagation(); setMobileDropdown((prev) => !prev) }} className="text-left font-bold text-black hover:text-blue-600 flex items-center gap-1 cursor-pointer w-full">
@@ -354,7 +367,7 @@ function Navbar() {
             )}
           </div>
 
-          {/* Bottom: Book Now Button */}
+          {/* Mobile book button */}
           <div className="flex flex-col gap-6 mt-10 mb-10">
             <button onClick={handleSmartBooking} className="shesco-btn w-full py-4 bg-blue-500 text-white font-bold text-lg rounded-xl border border-blue-500 hover:bg-transparent hover:text-blue-700 transition duration-300 cursor-pointer shadow-md">
               Book Now

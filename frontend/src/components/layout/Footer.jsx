@@ -18,13 +18,13 @@ function Footer() {
 
   const quickRef = useRef(null);
 
-  // CLOSE ALL
+  // Close all dropdowns
   const closeAll = () => {
     setQuickOpen(false);
     setGalleryOpen(false);
   };
 
-  // CLICK OUTSIDE TO CLOSE
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (quickRef.current && !quickRef.current.contains(e.target)) {
@@ -38,17 +38,15 @@ function Footer() {
     };
   }, []);
 
-  // SAFELY parse user data from localStorage
+  // Safely parse user data from localStorage
   let user = null;
   try {
     const userString = localStorage.getItem("user");
-    // Only parse if it's not null AND not the literal string "undefined"
     if (userString && userString !== "undefined") {
       user = JSON.parse(userString);
     }
   } catch (error) {
     console.error("Error parsing user data in Footer:", error);
-    // Optional: Clean up the corrupted data so it doesn't happen again
     localStorage.removeItem("user");
   }
 
@@ -57,18 +55,19 @@ function Footer() {
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
 
-        {/* LOGO + NAME */}
+        {/* Logo */}
         <div className="flex flex-col gap-3">
           <img src="https://res.cloudinary.com/detg3ravj/image/upload/f_auto,q_auto,w_1200/v1774993793/Logo1_rity18.jpg" 
           alt="MyHygiene Logo" 
           className="w-32 rounded text-sm"
           loading="lazy"
           decoding="async" />
+
           <p className="text-sm text-gray-400">
             Creating clean, fresh, and healthy living spaces.
           </p>
-
-          {/* Render Admin Link ONLY if role is admin */}
+          
+          {/* To only show admin link if role is admin */}
           {user?.role === "admin" && (
           <NavLink to="/admin" className="mt-2 text-gray-400 hover:text-yellow-400 transition md:text-center">
             <hr className="border-gray-700 mb-2"/>
@@ -84,9 +83,9 @@ function Footer() {
           </NavLink>
         </div>
 
-        {/* CONTACT */}
+        {/* Contact */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Contact</h2>
+          <h2 className="text-lg font-semibold">Contact </h2>
 
           <a
             href="mailto:myhygieneservices@gmail.com"
@@ -106,7 +105,7 @@ function Footer() {
         </div>
 
 
-        {/* QUICK LINKS */}
+        {/* Quick links */}
         <div className="flex flex-col gap-3" ref={quickRef}>
           <h2
             className="text-lg font-semibold flex items-center gap-4 cursor-pointer md:cursor-default select-none"
@@ -119,7 +118,7 @@ function Footer() {
             />
           </h2>
 
-          {/* DESKTOP LINKS */}
+          {/* Desktop links */}
           <div className="hidden md:flex md:flex-col gap-2">
             <NavLink to="/" className="text-gray-400 hover:text-yellow-400 transition">Home</NavLink>
             <NavLink to="/about" className="text-gray-400 hover:text-yellow-400 transition">About Us</NavLink>
@@ -129,7 +128,7 @@ function Footer() {
             <NavLink to="/booking" className="text-gray-400 hover:text-yellow-400 transition">Book Now</NavLink>
           </div>
 
-          {/* MOBILE DROPDOWN WITH SMOOTH ANIMATION */}
+          {/* Mobile dropdown with animation */}
           <div
             className={`
               md:hidden overflow-hidden transition-all duration-300 ease-in-out
@@ -146,7 +145,7 @@ function Footer() {
               <NavLink onClick={closeAll} to="/contact" className="text-gray-400 hover:text-yellow-400 transition">Contact Us</NavLink>
               <hr className="pb-8 border-gray-700"/>
 
-              {/* GALLERY DROPDOWN */}
+              {/* Gallery dropdown */}
               <div>
                 <div
                   onClick={() => setGalleryOpen(prev => !prev)}
@@ -184,11 +183,11 @@ function Footer() {
         </div>
 
 
-        {/* SOCIALS */}
-        <div className="flex flex-col gap-3">
+        {/* Socials links */}
+        <div className="flex flex-col md:items-center gap-3">
           <h2 className="text-lg font-semibold">Follow Us</h2>
 
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex flex-wrap md:flex-col gap-4 ">
             <a href="https://www.instagram.com/clean_withmyhygiene" target="_blank" rel="noreferrer" className="hover:text-pink-400 transition">
               <FaInstagram size={20} />
             </a>
@@ -211,7 +210,7 @@ function Footer() {
             </a>
 
             <a href="https://www.tiktok.com/@clean_withmyhygiene" target="_blank" rel="noreferrer"
-              className="hover:text-white transition text-sm border border-gray-500 px-2 py-1 rounded flex items-center justify-center">
+              className="hover:text-[#25f4ee] border border-gray-500 transition w-6 h-6 flex items-center justify-center text-sm rounded">
               <FaTiktok size={16} />
             </a>
           </div>
@@ -219,7 +218,7 @@ function Footer() {
 
       </div>
 
-      {/* BOTTOM LINE */}
+      {/* Bottom line */}
       <div className="text-center text-gray-500 text-sm mt-10 border-t border-gray-700 pt-5">
         © {new Date().getFullYear()} MyHygiene. All rights reserved.
       </div>

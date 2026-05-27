@@ -23,11 +23,12 @@ function Testimonials() {
 
   const containerRef = useRef()
 
-  const READ_TIME = 3000   // <-- CHANGE THIS (3000 = 3 seconds)
+  // Timing constants in milliseconds. (1000 ms = 1 second)
+  const READ_TIME = 3000  // time each testimonial is displayed before sliding to the next. (3000 ms = 3 seconds)
   const FLIP_DELAY = 700   // time before flip starts
-  const SLIDE_DURATION = 700 // must match transition duration-700
+  const SLIDE_DURATION = 700  // time it takes for slide animation to complete
 
-  // AUTO SLIDE
+  // Auto slide
   useEffect(() => {
     if (paused) return
 
@@ -35,17 +36,17 @@ function Testimonials() {
 
       setActive(0)
 
-      // Flip after slight delay
+      // Start flip animation after delay
       setTimeout(() => {
         setIsSliding(false)
       }, FLIP_DELAY)
 
-      // Wait for reading time before sliding
+      // Slide after brief pause to show flipped card
       setTimeout(() => {
         setIsSliding(true)
       }, READ_TIME)
 
-      // After slide animation completes
+      // Rearrange items after slide animation completes
       setTimeout(() => {
         setItems(prev => {
           const first = prev[0]
@@ -60,7 +61,7 @@ function Testimonials() {
     return () => clearInterval(interval)
   }, [paused])
 
-  // DRAG / SWIPE
+  // Drag / swipe
   let isDown = false
   let startX
   let scrollLeft
@@ -137,7 +138,7 @@ function Card({ data, isFlipped }) {
         style={{ transformStyle: "preserve-3d" }}
       >
 
-        {/* FRONT */}
+        {/* Front */}
         <div
           className={`absolute w-full h-full ${data.color} flex items-center justify-center rounded-xl`}
           style={{ backfaceVisibility: "hidden" }}
@@ -150,7 +151,7 @@ function Card({ data, isFlipped }) {
           decoding="async" />
         </div>
 
-        {/* BACK */}
+        {/* Back */}
         <div
           className="absolute w-full h-full bg-white flex flex-col items-center justify-center p-3 rounded-xl"
           style={{

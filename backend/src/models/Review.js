@@ -18,7 +18,7 @@ const reviewSchema = new mongoose.Schema(
     },
     isApproved: {
       type: Boolean,
-      default: true, // You can set this to false if you want to manually approve reviews later
+      default: true, // (Change to false when needs to manually approve reviews arises)
     }
   },
   { timestamps: true }

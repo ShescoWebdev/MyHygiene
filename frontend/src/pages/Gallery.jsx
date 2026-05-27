@@ -48,7 +48,7 @@ function Gallery() {
 
   const featuredVideoRef = useRef(null)
 
-  // 👉 PHOTO SWIPE STATE
+  // Photo swipe state
   const touchStartX = useRef(0)
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -66,7 +66,7 @@ function Gallery() {
     setCurrentIndex((prev) => (prev - 1 + list.length) % list.length)
   }
 
-  // 👉 PHOTO SWIPE
+  // To swipe photos
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX
     setIsDragging(true)
@@ -87,7 +87,7 @@ function Gallery() {
     setDragX(0)
   }
 
-  // VIDEO CONTROL
+  // Video control
   const handlePlay = (index) => {
     videoRefs.current.forEach((vid, i) => {
       if (vid && i !== index) {
@@ -105,7 +105,7 @@ function Gallery() {
     })
   }
 
-  // Pause featured video when modal opens
+  // To pause featured video when modal opens
   useEffect(() => {
     if (showVideos && featuredVideoRef.current) {
       try {
@@ -127,7 +127,7 @@ function Gallery() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [currentIndex, mode])
 
-  // FULLSCREEN VIDEO
+  // Fullscreen video view
   useEffect(() => {
     if (currentIndex !== null && mode === "video") {
       pauseAllModalVideos()
@@ -144,7 +144,7 @@ function Gallery() {
 
   useEffect(() => {
   if (showPhotos || showVideos || currentIndex !== null) {
-    // Lock scroll
+    // To romove scroll
     const scrollY = window.scrollY
 
     document.body.style.position = "fixed"
@@ -153,7 +153,7 @@ function Gallery() {
     document.body.style.right = "0"
     document.body.style.width = "100%"
   } else {
-    // Restore scroll
+    // To restore scroll
     const scrollY = document.body.style.top
 
     document.body.style.position = ""
@@ -172,14 +172,14 @@ function Gallery() {
     <PageWrapper>
       <div className="bg-[#faf6e8] min-h-screen px-6 md:px-20 py-16">
 
-        {/* HEADER */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-5xl font-semibold mb-4">
             Our Work Gallery
           </h1>
         </div>
 
-        {/* PHOTOS */}
+        {/* Photos */}
         <section className="text-center mb-16">
           <h2 className="text-2xl md:text-3xl mb-6 border-b-4 border-[#f0b000] w-[200px] m-auto">
             Photos
@@ -202,7 +202,7 @@ function Gallery() {
           </button>
         </section>
 
-        {/* VIDEOS */}
+        {/* Vidoes */}
         <section className="text-center">
           <h2 className="text-2xl md:text-3xl mb-5 border-b-4 border-[#f0b000] w-[200px] m-auto">
             Videos
@@ -234,7 +234,7 @@ function Gallery() {
           </div>
         </section>
 
-        {/* PHOTO MODAL */}
+        {/* Photo modal */}
         {showPhotos && (
           <Modal onClose={() => setShowPhotos(false)}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -253,7 +253,7 @@ function Gallery() {
           </Modal>
         )}
 
-        {/* VIDEO MODAL */}
+        {/* Video modal */}
         {showVideos && (
           <Modal onClose={() => setShowVideos(false)}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -275,7 +275,7 @@ function Gallery() {
           </Modal>
         )}
 
-        {/* FULLSCREEN */}
+        {/* Fullscreen */}
         {currentIndex !== null && (
           <div className="fixed inset-0 bg-black flex items-center justify-center overflow-hidden z-50">
 
@@ -324,7 +324,7 @@ function Gallery() {
   )
 }
 
-/* MODAL */
+/* Modal */
 function Modal({ children, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">

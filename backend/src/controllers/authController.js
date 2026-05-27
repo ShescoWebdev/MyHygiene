@@ -4,14 +4,14 @@ import generateToken from "../utils/generateToken.js";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary (Make sure these are in your .env file!)
+// Cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Register
+// To register user
 export const registerUser = async (req, res) => {
   const { name, email, password, phone, address } = req.body; 
 
@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // save to MongoDB
+  // Save to mongoDB
   const user = await User.create({
     name,
     email,
@@ -43,7 +43,7 @@ export const registerUser = async (req, res) => {
   });
 };
 
-// Login
+// To login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -58,16 +58,15 @@ export const loginUser = async (req, res) => {
       address: user.address,
       profilePic: user.profilePic,
       token: generateToken(user._id),
-      role: user.role || "user", // Fallback to "user" if it's missing
+      role: user.role || "user",
     });
   } else {
     res.status(401).json({ message: "User Account Does Not Exist" });
   }
 };
-// NEW: Upload Profile Picture
+// To upload profile picture
 export const updateProfilePic = async (req, res) => {
   try {
-    // req.user.id comes from the 'protect' middleware
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -78,22 +77,23 @@ export const updateProfilePic = async (req, res) => {
       return res.status(400).json({ message: "Please upload an image file" });
     }
 
-    // Convert the file buffer to a Base64 string for Cloudinary
+    // To convert the file buffer to a base64 string for cloudinary
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-    // Upload to Cloudinary
+    // Upload to cloudinary
     const result = await cloudinary.uploader.upload(dataURI, {
-      folder: "myhygiene_avatars", // Creates a neat folder in your Cloudinary
+      // creates a folder in cloudinary
+      folder: "myhygiene_avatars",
       width: 300,
       crop: "scale"
     });
 
-    // Save the Cloudinary URL to the user in the database
+    // To save the cloudinary URL to the user in the database
     user.profilePic = result.secure_url;
     await user.save();
 
-    // Send back the updated user details
+    // To send back the updated user details
     res.json({
       _id: user._id,
       name: user.name,
@@ -119,9 +119,9 @@ export const protect = (req, res, next) => {
   }
 
   try {
-    // Note: I changed decoded to get req.user.id because we need the ID to find the user in DB
+    // To find the user in database 
     const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-    req.user = { id: decoded.id }; // Usually generateToken signs the id as { id: user._id }
+    req.user = { id: decoded.id };
     next();
   } catch (err) {
     res.status(401).json({ message: "Invalid token" });

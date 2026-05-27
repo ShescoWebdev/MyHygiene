@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import PageWrapper from "../components/PageWrapper"
 import Skeleton from "../components/Skeleton"
-import API from "../api" // Ensure this is imported!
+import API, { BASE_URL } from "../api"
 
 // Moved outside component so it doesn't recreate on every render
 const hardcodedPhotos = [
@@ -37,36 +37,44 @@ const hardcodedPhotos = [
 
 function Photos() {
   const [loading, setLoading] = useState(true)
-  const [photos, setPhotos] = useState([]) // dynamic state
+  const [photos, setPhotos] = useState([]) 
   const [showPhotos, setShowPhotos] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(null)
+  const [featuredPhoto, setFeaturedPhoto] = useState(null);
 
-  // Fetch dynamic photos from backend and merge with hardcoded ones
+  // To fetch dynamic photos from backend and merge with hardcoded ones
   useEffect(() => {
     const fetchDynamicPhotos = async () => {
       try {
         const { data } = await API.get("/posts");
         const postsArray = data.posts || data;
         
-        // Filter out only posts that are photos and have a valid URL
-        const dynamicPhotos = postsArray
-          .filter(post => post.mediaType === "photo" && post.url)
-          .map(post => post.url);
+       // To get all dynamic photos
+        const dynamicPhotos = postsArray.filter(post => post.mediaType === "photo" && post.url);
+        
+        // To find the featured photo from the backend
+        const featuredBackend = dynamicPhotos.find(post => post.isFeatured);
+        
+        // To set the featured photo fallback to the chosen hardcoded one
+        const theFeaturedUrl = featuredBackend ? featuredBackend.url : hardcodedPhotos[0];
+        setFeaturedPhoto(theFeaturedUrl);
 
-        // Put new dynamic photos FIRST, followed by the hardcoded ones
-        setPhotos([...dynamicPhotos, ...hardcodedPhotos]);
+        // To combine dynamic photos with hardcoded ones, ensuring no duplicates
+        const dynamicUrls = dynamicPhotos.map(post => post.url);
+        setPhotos([...dynamicUrls, ...hardcodedPhotos]);
+
       } catch (error) {
         console.error("Failed to fetch gallery photos:", error);
-        setPhotos(hardcodedPhotos); // fallback to just hardcoded if backend fails
+        setPhotos(hardcodedPhotos);
+        setFeaturedPhoto(hardcodedPhotos[0]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchDynamicPhotos();
   }, []);
 
-  // 👉 Swipe state
+  // Swipe state
   const touchStartX = useRef(0)
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -112,27 +120,38 @@ function Photos() {
     return () => { document.body.style.overflow = "auto" }
   }, [showPhotos, currentIndex])
 
+  const getMediaUrl = (url) => {
+  if (!url) return "";
+  // To handle both absolute URLs and relative paths from the backend
+  return url.startsWith("http") ? url : `${BASE_URL}/${url}`;
+  };
+
+
   return (
     <PageWrapper>
       <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20">
 
-        {/* HEADER */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-5xl font-semibold mb-4">Our Photo Gallery</h1>
           <p className="text-gray-600 md:text-lg max-w-2xl mx-auto">Take a look at some of our work!</p>
         </div>
 
-        {/* FEATURED */}
+        {/* Featured Photo */}
         <section className="text-center mb-16">
           {loading ? (
-            <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
-          ) : photos.length > 0 && (
-            <img
-              src={photos[0]}
-              onClick={() => setCurrentIndex(0)}
-              className="mx-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer"
-            />
-          )}
+        <Skeleton className="w-[22.5rem] h-[25rem] md:w-[50rem] m-auto rounded-2xl" />
+      ) : featuredPhoto && (
+        <img
+          src={getMediaUrl(featuredPhoto)}
+          onClick={() => {
+            // To find the index of the featured photo in the combined list (dynamic + hardcoded)
+            const idx = photos.indexOf(featuredPhoto);
+            setCurrentIndex(idx !== -1 ? idx : 0);
+          }}
+          className="mx-auto w-full md:w-[800px] h-[450px] object-cover rounded-xl cursor-pointer"
+        />
+      )}
 
           <button
             onClick={() => setShowPhotos(true)}
@@ -141,51 +160,54 @@ function Photos() {
             See More Photos
           </button>
 
-          <div className='about3 text-black w-[20rem] m-auto md:w-[75rem] mt-10 p-10 bg-[#f4d171] flex flex-col rounded-3xl'>
+          <div className='about3 text-black w-[20rem] m-auto md:w-[70rem] mt-10 p-10 bg-[#f4d171] flex flex-col rounded-3xl'>
             <h1 className='text-center text-2xl md:text-4xl leading-relaxed text-blue-800 font-bold'>
               Enjoy our photo gallery
             </h1>
           </div>
         </section>
 
-        {/* GRID MODAL */}
+        {/* Photo Grid Modal */}
         {showPhotos && (
           <Modal onClose={() => setShowPhotos(false)}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {photos.map((src, index) => (
                 <img
                   key={index}
-                  src={src}
+                  src={getMediaUrl(src)}
                   onClick={() => setCurrentIndex(index)}
-                  className="aspect-square object-cover rounded-lg cursor-pointer"
+                  className="aspect-square object-cover object-top rounded-lg cursor-pointer"
                 />
               ))}
             </div>
           </Modal>
         )}
 
-        {/* FULLSCREEN SLIDER */}
-        {currentIndex !== null && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center overflow-hidden z-50">
-            <button onClick={() => setCurrentIndex(null)} className="fixed top-5 right-6 text-white text-3xl z-50">✕</button>
-            <div
-              className="flex"
-              style={{
-                transform: `translateX(calc(${-currentIndex * 100}% + ${dragX}px))`,
-                transition: isDragging ? "none" : "transform 0.3s ease"
-              }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              {photos.map((src, i) => (
-                <div key={i} className="min-w-full flex justify-center items-center">
-                  <img src={src} className="max-w-[90%] max-h-[90%] rounded-xl" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Fullscreen View */}
+{currentIndex !== null && (
+  <div className="fixed inset-0 bg-black/90 flex items-center justify-center overflow-hidden z-50">
+    <button onClick={() => setCurrentIndex(null)} className="fixed top-5 right-6 text-white text-3xl z-50">✕</button>
+    <div
+      className="flex h-full w-full items-center" 
+      style={{
+        transform: `translateX(calc(${-currentIndex * 100}% + ${dragX}px))`,
+        transition: isDragging ? "none" : "transform 0.3s ease"
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {photos.map((src, i) => (
+        <div key={i} className="min-w-full h-full flex justify-center items-center">
+          <img 
+            src={getMediaUrl(src)} 
+            className="max-w-[90%] max-h-[90%] object-contain rounded-xl"
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
       </div>
     </PageWrapper>
@@ -195,7 +217,7 @@ function Photos() {
 function Modal({ children, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
-      <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
+      <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-5 mb-5">
         <button onClick={onClose} className="fixed top-5 right-6 text-black bg-[#f0b000] p-3 text-3xl z-50">✕</button>
         {children}
       </div>

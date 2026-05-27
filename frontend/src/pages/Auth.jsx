@@ -8,7 +8,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Grab the login function from our global brain (AuthContext)
+  // To get the login function from AuthContext, and the user/token, for successful login or registration
   const { login } = useContext(AuthContext); 
 
   const searchParams = new URLSearchParams(location.search);
@@ -31,11 +31,11 @@ export default function Auth() {
     confirmPassword: "", 
   });
 
-  // Auto-fill email if we remember this user from a past session!
+  // To auto-fill email of user from a past session!
   useEffect(() => {
     const savedUserStr = localStorage.getItem("user");
     
-    // Only parse if it exists AND is not the literal string "undefined"
+    // To check if savedUserStr is not empty and not the string "undefined" before parsing
     if (savedUserStr && savedUserStr !== "undefined") {
       try {
         const savedUser = JSON.parse(savedUserStr);
@@ -68,16 +68,13 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        // --- LOGIN FLOW ---
+        // To login
         const { data } = await API.post("/auth/login", {
           email: form.email,
           password: form.password,
         });
 
-        // console.log("LOGIN RESPONSE FROM BACKEND:", data);
-        // console.log("FRESH LOGIN DATA:", user);
-
-        // 1. Package the flat data into a clean user object (now including phone and address)
+        // To get the user data from the response and pass it to the context
         const loggedInUser = {
           _id: data._id,
           name: data.name,
@@ -88,13 +85,13 @@ export default function Auth() {
           role: data.role || "user"
         };
 
-        // 2. Pass the packaged user AND the token to the context
+        // To Pass the user and the token to the context
         login(loggedInUser, data.token);
 
-        // 3. Navigate to booking
+        // To navigate to booking
         navigate(redirectUrl);
       } else {
-        // --- REGISTER FLOW ---
+      // To register
         const { data } = await API.post("/auth/register", {
           name: form.name,
           email: form.email,
@@ -103,7 +100,7 @@ export default function Auth() {
           password: form.password,
         });
 
-        // If backend auto-logs them in upon registration and sends a token back:
+        // If registration returns a token, log them in immediately and navigate to booking
         if (data.token) {
            const userData = data.user || { 
              _id: data._id, 
@@ -115,14 +112,14 @@ export default function Auth() {
              role: data.role || "user"
            };
            
-           // Use the context login function here too
+           // To log the user in with the returned data
            login(userData, data.token);
            
            navigate(redirectUrl); 
-           return; // Stop here, they are going to the booking page
+           return; // To prevent the code below from running and switching to login mode if we already have a token and logged in the user
         }
 
-        // Otherwise, switch to login mode and keep the email filled
+        // To switch to login mode after successful registration, and prompt the user to log in with their new password
         setIsLogin(true);
         setForm(prev => ({ ...prev, password: "", confirmPassword: "" }));
         setSuccessMsg("Account created! Please log in with your password.");
@@ -149,7 +146,7 @@ export default function Auth() {
         
         <div className="text-center">
           <h2 className="mt-2 text-3xl font-extrabold text-gray-900">
-            {isLogin ? "Welcome back" : "Create your account"}
+            {isLogin ? "Welcome" : "Create your account"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             {isLogin ? "Log in to manage your bookings." : "Join us to save your details for faster booking."}

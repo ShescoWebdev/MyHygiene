@@ -1,6 +1,6 @@
 import Review from "../models/Review.js";
 
-// Create a new review
+// To create a new review
 export const createReview = async (req, res) => {
   try {
     const { name, rating, comment } = req.body;
@@ -18,7 +18,7 @@ export const createReview = async (req, res) => {
   }
 };
 
-// Get all approved reviews (for homepage carousel)
+// To get all approved reviews
 export const getReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ isApproved: true }).sort({ createdAt: -1 });

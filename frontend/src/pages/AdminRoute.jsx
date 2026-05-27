@@ -1,22 +1,21 @@
 import { Navigate } from "react-router-dom";
 
-// This component acts as a security checkpoint
+// To protect admin routes
 const AdminRoute = ({ children }) => {
-  // Check if the user is logged in (do we have a token?)
+  // To check if the user is logged in
   const token = localStorage.getItem("token");
   
-  // Check if the user is actually an admin. 
-  // (Assuming you save user details in localStorage too)
+  // To check if the user is an admin. 
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
 
-  // If there's no token, OR the user's role isn't 'admin', kick them to the home page!
+  // To check if user is not admin or not logged in, redirect to home page or login page
   if (!token || user?.role !== "admin") {
-    // You can redirect to "/login" or "/"
-    return <Navigate to="/" replace />; 
+    // Redirect to home page or login page
+    return <Navigate to="/"  replace/>; 
   }
 
-  // If they pass the checks, render the page!
+  // If user is admin, render the children components
   return children;
 };
 

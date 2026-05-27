@@ -4,8 +4,7 @@ import PageWrapper from "../components/PageWrapper";
 function BookingSuccess() {
   const location = useLocation();
 
-  // Did they come from a successful booking?
-  // If not, redirect them to the home page immediately.
+  // To prevent users from accessing this page directly without going through the booking process
   if (!location.state || !location.state.bookingSuccessful) {
     return <Navigate to="/" replace />;
   }
@@ -19,7 +18,7 @@ function BookingSuccess() {
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Booking Sent!</h1>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            Thank you for booking with <strong>MyHygiene</strong>. Your request has been sent, and a confirmation will be sent to your email shortly. Our team will review your booking and get back to you within 24-48 hours. We look forward to providing you with a sparkling clean home!
+            Thank you for booking with <strong>MyHygiene</strong>. Your request has been sent, and a pending confirmation message has been sent to your email. Our team will review your booking and get back to you within 24-48 hours. We look forward to providing you with a sparkling clean home!
           </p>
           <Link
             to="/"

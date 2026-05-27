@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react"
 import PageWrapper from "../components/PageWrapper"
 import Skeleton from "../components/Skeleton"
-import API from "../api" // Ensure this is imported!
+import API, { BASE_URL } from "../api"
 
-// Moved outside component
+// Moved outside component so it doesn't recreate on every render
 const hardcodedVideos = [
   "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993190/vid1_watb2r.mp4",
   "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993202/vid2_eaohxp.mp4",
@@ -15,27 +15,37 @@ function Videos() {
   const [videos, setVideos] = useState([]) // dynamic state
   const [showVideos, setShowVideos] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(null)
+  const [featuredVideo, setFeaturedVideo] = useState(null);
 
-  // Fetch dynamic videos from backend
+  // To fetch dynamic videos from backend and merge with hardcoded ones
   useEffect(() => {
     const fetchDynamicVideos = async () => {
       try {
         const { data } = await API.get("/posts");
         const postsArray = data.posts || data;
         
-        const dynamicVideos = postsArray
-          .filter(post => post.mediaType === "video" && post.url)
-          .map(post => post.url);
+        // To get all dynamic videos
+        const dynamicVideos = postsArray.filter(post => post.mediaType === "video" && post.url);
+        
+        // To find the featured video from the backend
+        const featuredBackend = dynamicVideos.find(post => post.isFeatured);
+        
+        // To set the featured video fallback to the chosen hardcoded one
+        const theFeaturedUrl = featuredBackend ? featuredBackend.url : hardcodedVideos[0];
+        setFeaturedVideo(theFeaturedUrl);
 
-        setVideos([...dynamicVideos, ...hardcodedVideos]);
+        // To combine dynamic videos with hardcoded ones, ensuring no duplicates
+        const dynamicUrls = dynamicVideos.map(post => post.url);
+        setVideos([...dynamicUrls, ...hardcodedVideos]);
+
       } catch (error) {
         console.error("Failed to fetch gallery videos:", error);
         setVideos(hardcodedVideos);
+        setFeaturedVideo(hardcodedVideos[0]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchDynamicVideos();
   }, []);
 
@@ -136,30 +146,39 @@ function Videos() {
 
   if (showVideos) { videoRefs.current = [] }
 
+  const getMediaUrl = (url) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `${BASE_URL}/${url}`;
+  };
+
   return (
     <PageWrapper>
       <div className="bg-[#faf6e8] min-h-screen pt-16 px-6 md:px-20 md:pt-16 py-1 md:mt-[-1.7rem]">
 
-        {/* HEADER */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-5xl font-semibold mb-4">Our Video Gallery</h1>
         </div>
 
-        {/* FEATURED VIDEO */}
+        {/* Featured Video */}
         <section className="text-center mb-16">
           {loading ? (
-            <Skeleton className="w-[22.5rem] h-[19rem] md:w-[32rem] m-auto rounded-2xl" />
-          ) : videos.length > 0 && (
+            <Skeleton className="w-[22.5rem] h-[25rem] md:w-[50rem] m-auto rounded-2xl" />
+          ) : featuredVideo && (
             <video
-              ref={featuredVideoRef}
-              src={videos[0]}
               controls
               preload="metadata"
+              ref={featuredVideoRef}
+              src={getMediaUrl(featuredVideo)}
               onClick={() => {
-                pauseAllVideos()
-                setCurrentIndex(0)
+                // Only trigger the custom fullscreen view modal on mobile screens
+                if (window.innerWidth < 768) {
+                  pauseAllVideos()
+                  const idx = videos.indexOf(featuredVideo);
+                  setCurrentIndex(idx !== -1 ? idx : 0);
+                }
               }}
-              className="mx-auto w-full md:w-[500px] h-[300px] object-cover rounded-xl cursor-pointer bg-black"
+              className="mx-auto w-full md:w-[800px] h-[450px] object-cover rounded-xl cursor-pointer bg-black"
             />
           )}
 
@@ -167,14 +186,14 @@ function Videos() {
             See More Videos
           </button>
 
-          <div className='about3 text-black w-[20rem] m-auto md:w-[75rem] mt-10 p-10 bg-[#f4d171] flex flex-col rounded-3xl'>
+          <div className='about3 text-black w-[20rem] m-auto md:w-[70rem] mt-10 p-10 bg-[#f4d171] rounded-3xl'>
             <h1 className='text-center text-2xl md:text-4xl leading-relaxed text-blue-800 font-bold'>
               Enjoy our video gallery
             </h1>
           </div>
         </section>
 
-        {/* VIDEO MODAL */}
+        {/* Video Grid Modal */}
         {showVideos && (
           <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-start overflow-y-auto">
             <div className="bg-[#fadd8d] rounded-xl max-w-5xl w-full relative p-6 mt-10 mb-10">
@@ -185,15 +204,18 @@ function Videos() {
                   <div key={index} className="aspect-square overflow-hidden rounded-lg bg-black">
                     <video
                       ref={(el) => { if (el) videoRefs.current[index] = el }}
-                      src={src}
+                      src={getMediaUrl(src)}
                       controls
                       preload="metadata"
                       onPlay={() => handlePlay(index)}
                       onClick={() => {
-                        handlePlay(index) 
-                        setCurrentIndex(index)
+                        // Only open custom fullscreen modal slider if on mobile view
+                        if (window.innerWidth < 768) {
+                          handlePlay(index) 
+                          setCurrentIndex(index)
+                        }
                       }}
-                      className="w-full h-full object-cover cursor-pointer"
+                      className="w-full h-full object-cover cursor-pointer md:cursor-default"
                     />
                   </div>
                 ))}
@@ -202,7 +224,7 @@ function Videos() {
           </div>
         )}
 
-        {/* FULLSCREEN VIEW */}
+        {/* Fullscreen View */}
         {currentIndex !== null && (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
             <button onClick={() => setCurrentIndex(null)} className="fixed top-5 right-6 text-white text-3xl z-50">✕</button>
@@ -210,7 +232,7 @@ function Videos() {
 
             <video
               ref={fullscreenVideoRef}
-              src={videos[currentIndex]}
+              src={getMediaUrl(videos[currentIndex])}
               controls
               autoPlay
               onTouchStart={handleTouchStart}
