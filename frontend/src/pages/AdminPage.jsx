@@ -332,7 +332,7 @@ function AdminPage() {
                         {openMenuId === activity._id && (
                           <div 
                             onClick={(e) => e.stopPropagation()} 
-                            className="absolute right-0 md:right-12 bottom-0 md:top-auto w-52 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
+                            className="absolute right-0 md:right-12 bottom-0 md:top-auto w-[25vw] bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
                           >
                             <button 
                               onClick={() => handleDeleteActivity(activity._id)}
