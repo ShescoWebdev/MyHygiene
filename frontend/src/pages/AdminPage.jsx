@@ -273,7 +273,7 @@ function AdminPage() {
              {activities.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No recent activity to show.</p>
              ) : (
-                <div className="relative space-y-2 md:space-y-5">
+                <div className="relative space-y-2 md:space-y-0">
                   {activities.map((activity) => (
                     
                     <div 
@@ -286,12 +286,12 @@ function AdminPage() {
                           navigate('/hub'); // Fallback route for older notification cards
                         }
                       }}
-                      className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 rounded transition justify-between items-start cursor-pointer group"
+                      className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-start cursor-pointer group"
                     >
                       {/* Avatar / Dot */}
                       <div className="flex-shrink-0 mr-4">
                         {activity.profilePic ? (
-                          <img 
+                          <img
                             src={activity.profilePic} 
                             alt={activity.user} 
                             className="w-10 h-10 rounded-full object-cover border border-gray-200"
@@ -332,7 +332,7 @@ function AdminPage() {
                         {openMenuId === activity._id && (
                           <div 
                             onClick={(e) => e.stopPropagation()} 
-                            className="absolute right-0 md:left-12 bottom-0 md:bottom-auto w-32 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
+                            className="absolute right-0 md:right-12 bottom-0 md:top-auto w-32 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
                           >
                             <button 
                               onClick={() => handleDeleteActivity(activity._id)}
