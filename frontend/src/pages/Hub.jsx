@@ -718,7 +718,7 @@ const Hub = () => {
 
                     {/* Hover Tooltip */}
                     {selectedPost.likes && selectedPost.likes.length > 0 && typeof selectedPost.likes[0] === 'object' && (
-                      <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-[80] w-52 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
+                      <div className="absolute top-0 right-14 mb-2 hidden group-hover:block z-[80] w-52 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
                         <div className="max-h-48 overflow-y-auto p-2 custom-scrollbar">
                           <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">
                             Reactions
@@ -734,7 +734,7 @@ const Hub = () => {
                             </div>
                           ))}
                         </div>
-                        <div className="absolute top-full right-3 border-[6px] border-transparent border-t-gray-900"></div>
+                        <div className="absolute left-full top-2 right-3 border-[6px] border-transparent border-l-gray-900"></div>
                       </div>
                     )}
                   </div>
