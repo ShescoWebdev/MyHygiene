@@ -11,12 +11,12 @@ function Offline() {
     if (navigator.onLine) {
       // If users have internet, kick them out
       const lastPage = localStorage.getItem("lastPage") || "/"
-      // 'replace: true' ensures users can't click the back button to return here
+      // To ensure users can't click the back button to return here
       navigate(lastPage, { replace: true }) 
     }
   }, [navigate])
 
-  //Wait for them to regain connection if they are offline
+  // Wait for them to regain connection if they are offline
   useEffect(() => {
     const handleOnline = () => {
       setReconnecting(true)
@@ -26,7 +26,7 @@ function Offline() {
       setTimeout(() => {
         const lastPage = localStorage.getItem("lastPage") || "/"
         navigate(lastPage, { replace: true })
-      }, 6000)
+      }, 4000)
     }
 
     window.addEventListener("online", handleOnline)

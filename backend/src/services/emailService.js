@@ -27,7 +27,7 @@ const transporter = nodemailer.createTransport({
 
   const timeStr = booking.time || "Not specified";
   
-  const clientURL = process.env.FRONTEND_URL || "http://localhost:5173"; 
+  const clientURL = process.env.FRONTEND_URL || "https://myhygiene.netlify.app"; 
 
   // To determine email content whether it's a new booking or an update
   let subject = "We've received your booking request! - MyHygiene";

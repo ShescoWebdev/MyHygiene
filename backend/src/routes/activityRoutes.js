@@ -6,16 +6,15 @@ import {
     deleteActivity, 
     deleteAllActivities 
 } from "../controllers/activityController.js";
+import { protect, admin } from "../middleware/authMiddleware.js";
+import { isAdmin } from "../middleware/adminMiddleware.js";
 
 const router = express.Router();
 
-// Assuming you have your auth middleware to protect admin routes
-// import { protect, admin } from "../middleware/authMiddleware.js";
-
-router.get("/", /* protect, admin, */ getActivities);
-router.put("/mark-read", /* protect, admin, */ markAllAsRead);
+router.get("/",  protect, isAdmin,  getActivities);
+router.put("/mark-read",protect, isAdmin, markAllAsRead);
 router.post("/", createActivityLog);
-router.delete("/:id", deleteActivity); // Deletes one item by ID
-router.delete("/", deleteAllActivities); // Deletes everything
+router.delete("/:id", deleteActivity);
+router.delete("/", deleteAllActivities);
 
 export default router;

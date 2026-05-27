@@ -65,7 +65,7 @@ const Hub = () => {
     fetchPosts();
   }, []);
 
-  // Prevent background scrolling when any modal view is active
+  // To prevent background scrolling when any modal view is active
   useEffect(() => {
     if (selectedPost || showCreateModal) {
       document.body.style.overflow = 'hidden';
@@ -77,7 +77,7 @@ const Hub = () => {
     };
   }, [selectedPost, showCreateModal]);
 
-  // To Handle Syncing Video Time When Opening Modal
+  // To handle syncing video time when opening modal
   useEffect(() => {
     if (selectedPost && selectedPost.mediaType === "video" && modalVideoRef.current) {
       modalVideoRef.current.currentTime = selectedPost.initialTime || 0;
@@ -87,7 +87,7 @@ const Hub = () => {
     }
   }, [selectedPost]);
 
-  // To Handle Closing Modal and Syncing Back Video Time if Needed
+  // To handle closing modal and syncing back video time if needed
   const closePostModal = () => {
     if (selectedPost?.mediaType === "video" && modalVideoRef.current) {
       const feedVid = videoRefs.current[selectedPost._id];
@@ -101,7 +101,7 @@ const Hub = () => {
     setSelectedPost(null);
   };
 
-  // To Close Menus When Clicking Outside
+  // To close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.post-menu-container')) {
@@ -118,7 +118,7 @@ const Hub = () => {
     };
   }, []);
 
-  // To Handle Long Press for Mobile to Activate Selection Mode
+  // To handle long-press for mobile to enter selection mode
   const handleTouchStart = (postId) => {
     if (!isAdmin || isSelectionMode) return;
     pressTimer.current = setTimeout(() => {
@@ -134,7 +134,7 @@ const Hub = () => {
     }
   };
 
-  // To Toggle Selection of Individual Posts
+  // To toggle selection of posts in selection mode
   const toggleSelection = (postId) => {
     setSelectedPostIds(prev => 
       prev.includes(postId) 
@@ -156,7 +156,7 @@ const Hub = () => {
     setSelectedPostIds([]);
   };
 
-  // To Bulk Delete Posts
+  // To bulk delete selected posts
   const handleBulkDelete = async () => {
     if (selectedPostIds.length === 0) return;
 
@@ -357,8 +357,7 @@ const Hub = () => {
     return picUrl.startsWith("http") ? picUrl : `${BASE_URL}/${picUrl}`;
   };
 
-    // Add a default fallback value right in the parameters
-  // Add postId as the first parameter so you can map it directly
+    // To handle like button click with notification
 const handleHeartClick = async (postId, postText = "this post") => {
   if (isLiked) return; 
   setIsLiked(true); 
@@ -389,7 +388,7 @@ const handleHeartClick = async (postId, postText = "this post") => {
       user: loggedInUser, 
       action: `liked your post: "${snippet}"`, 
       profilePic: userImage,
-      postId: postId // 👈 NEW: Sending the specific post ID down the pipe
+      postId: postId // Sending the specific post ID down the pipe
     });
   } catch (error) {
     console.error("Failed to send notification:", error);
@@ -581,7 +580,6 @@ const handleHeartClick = async (postId, postText = "this post") => {
 
                       {/* 3 Dots Menu */}
                       {isAdmin && !isSelectionMode && (
-                        // ADDED z-50 container to keep menu context clean
                         <div className="relative post-menu-container z-50">
                           <button 
                             onClick={(e) => {
@@ -779,11 +777,9 @@ const handleHeartClick = async (postId, postText = "this post") => {
               </div>
 
                   {isAdmin && (
-                    // ADDED z-50 to Modal menu
                     <div className="relative modal-menu-container z-50">
                       <button 
                         onClick={(e) => {
-                          // ADDED e.stopPropagation() here to prevent the document click listener from instantly hiding it
                           e.stopPropagation();
                           setModalMenuOpen(!modalMenuOpen);
                         }}
@@ -793,7 +789,6 @@ const handleHeartClick = async (postId, postText = "this post") => {
                       </button>
 
                       {modalMenuOpen && (
-                        // Bumped dropdown z-index up
                         <div className="absolute bottom-full right-0 mb-2 w-36 bg-white border border-gray-100 rounded-xl shadow-2xl z-[100] py-2 overflow-hidden">
                           <button onClick={() => handleEdit(selectedPost)} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                             <Edit2 size={16} /> Edit

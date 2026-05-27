@@ -79,20 +79,20 @@ useEffect(() => {
     img.src = images[0]
   }, [])
 
-    // Smart booking logic: Check if user is logged in, if not check if we have their info (session expired), else treat as new user
+    // To check if user is logged in, if not check if we have their info (session expired), else treat as new user
   const handleSmartBooking = () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
 
     if (token && user) {
-      //  Fully logged in -> Straight to booking
+      //  Fully logged in, Straight to booking
       navigate("/booking");
     } else if (!token && user) {
-      // Session expired / Logged out, but we remember them -> To Login (with redirect to booking after login)
+      // Session expired / Logged out, but we remember them, To Login (with redirect to booking after login)
       navigate("/auth?redirect=/booking");
     } else {
-      // Completely new user -> To Book Choice (where they can choose to book as guest or create account)
+      // Completely new user, To Book Choice (where they can choose to book as guest or create account)
       navigate("/book-choice");
     }
   };

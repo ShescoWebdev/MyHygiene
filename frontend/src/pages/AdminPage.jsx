@@ -139,7 +139,7 @@ function AdminPage() {
     }
   };
 
-  // 1. Delete a Single Notification
+  // To delete a single notification
   const handleDeleteActivity = async (activityId) => {
     setOpenMenuId(null); 
 
@@ -164,7 +164,7 @@ function AdminPage() {
     });
   };
 
-  // 2. Clear All Notifications
+  // To clear all notifications
   const handleClearAllActivities = async () => {
     setOpenMenuId(null);
     Swal.fire({
@@ -254,9 +254,7 @@ function AdminPage() {
           </div>
         )}
 
-        {/* ------------------------------------------- */}
-        {/* VIEW: ACTIVITY LOG TIMELINE                 */}
-        {/* ------------------------------------------- */}
+        {/* ACTIVITY LOG TIMELINE */}
         {activeView === 'activity' && (
            <div className="w-full text-left bg-white rounded-lg shadow-sm border p-4 sm:p-6 mt-4 md:mt-0 relative">
              
@@ -281,7 +279,7 @@ function AdminPage() {
                     <div 
                       key={activity._id} 
                       onClick={() => {
-                        // 👈 NEW DYNAMIC ROUTING: Routes directly to the post detail view if it exists
+                        // Routes directly to the post detail view if it exists
                         if (activity.postId) {
                           navigate(`/hub/${activity.postId}`); 
                         } else {
@@ -330,7 +328,7 @@ function AdminPage() {
                           </svg>
                         </button>
 
-                        {/* Dropdown Menu Popup box */}
+                        {/* Dropdown Menu */}
                         {openMenuId === activity._id && (
                           <div 
                             onClick={(e) => e.stopPropagation()} 
@@ -371,9 +369,7 @@ function AdminPage() {
            </div>
         )}
 
-        {/* ------------------------------------------- */}
-        {/* VIEW: BOOKINGS (Inbox or Detailed)          */}
-        {/* ------------------------------------------- */}
+        {/* BOOKINGS (Inbox / Detailed) */}
         {activeView === 'bookings' && (
           <>
             {!isLoading && !errorMessage && bookings.length === 0 && (

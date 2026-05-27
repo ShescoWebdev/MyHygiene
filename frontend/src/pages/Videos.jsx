@@ -171,7 +171,6 @@ function Videos() {
               ref={featuredVideoRef}
               src={getMediaUrl(featuredVideo)}
               onClick={() => {
-                // Only trigger the custom fullscreen view modal on mobile screens
                 if (window.innerWidth < 768) {
                   pauseAllVideos()
                   const idx = videos.indexOf(featuredVideo);
@@ -209,7 +208,6 @@ function Videos() {
                       preload="metadata"
                       onPlay={() => handlePlay(index)}
                       onClick={() => {
-                        // Only open custom fullscreen modal slider if on mobile view
                         if (window.innerWidth < 768) {
                           handlePlay(index) 
                           setCurrentIndex(index)

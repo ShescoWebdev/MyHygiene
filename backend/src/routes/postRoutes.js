@@ -15,8 +15,10 @@ import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-// --- CUSTOM UPLOAD HANDLER ---
-// This catches Multer errors before they crash the app
+/**
+ * CUSTOM UPLOAD HANDLER
+ * To catche Multer errors before they crash the app
+ */
 const handleUpload = (req, res, next) => {
   const uploadSingle = upload.single("file"); 
 
@@ -29,17 +31,17 @@ const handleUpload = (req, res, next) => {
     } else if (err) {
       return res.status(500).json({ error: "Server error during upload." });
     }
-    // If no errors, move on to your controller
+    // If no errors, move on to controller
     next();
   });
 };
 
-// --- ROUTES ---
+// ROUTES 
 
 // Public route to view posts 
 router.get("/", getAllPosts);
 
-// To create posts (Notice how handleUpload replaces upload.single)
+// To create posts
 router.post("/", protect, isAdmin, handleUpload, createPost);
 
 // To edit/update a post
