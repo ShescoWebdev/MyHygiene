@@ -118,31 +118,43 @@ function AdminPage() {
   // Unread notification count
   const unreadCount = activities.filter(a => !a.isRead).length;
 
+  // New: Mark specific notification as read
+  const markAsRead = async (activityId) => {
+    const activity = activities.find(a => a._id === activityId);
+    if (!activity || activity.isRead) return;
+
+    try {
+        const token = localStorage.getItem("token");
+        await API.put(`/activities/${activityId}/read`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        setActivities((prev) => prev.map(a => a._id === activityId ? { ...a, isRead: true } : a));
+    } catch (error) {
+        console.error("Failed to mark read:", error);
+    }
+  };
+
   const handleViewActivities = async () => {
     setActiveView('activity');
     setSelectedUserKey(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // If there are unread notifications, mark them read in the DB and UI
+    
+    // Optional: Mark all as read when entering the log
     if (unreadCount > 0) {
       try {
         const token = localStorage.getItem("token");
         await API.put("/activities/mark-read", {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        // Update local state instantly so the red badge disappears
         setActivities((prev) => prev.map(a => ({ ...a, isRead: true })));
       } catch (error) {
-        console.error("Failed to mark activities as read:", error);
+        console.error("Failed to mark all activities as read:", error);
       }
     }
   };
 
-  // To delete a single notification
   const handleDeleteActivity = async (activityId) => {
     setOpenMenuId(null); 
-
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -164,7 +176,6 @@ function AdminPage() {
     });
   };
 
-  // To clear all notifications
   const handleClearAllActivities = async () => {
     setOpenMenuId(null);
     Swal.fire({
@@ -198,7 +209,6 @@ function AdminPage() {
           </h2>
 
           <div className="flex items-center gap-4 sm:gap-6">
-            {/* Notification Bell Icon */}
             <button 
               onClick={handleViewActivities}
               className="relative p-1 text-[#f0b000] scale-90 hover:scale-100 transition-transform duration-500"
@@ -213,14 +223,13 @@ function AdminPage() {
               )}
             </button>
 
-            {/* Back Navigation */}
             {activeView === 'activity' ? (
                <button 
-                 onClick={() => {
-                   setActiveView('bookings');
-                   window.scrollTo({ top: 0, behavior: 'smooth' }); 
-                 }}
-                 className="text-sm font-bold text-[#f0b000] hover:text-[#dba102] underline whitespace-nowrap"
+                  onClick={() => {
+                    setActiveView('bookings');
+                    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                  }}
+                  className="text-sm font-bold text-[#f0b000] hover:text-[#dba102] underline whitespace-nowrap"
                >
                  &larr; Back to Bookings
                </button>
@@ -275,27 +284,21 @@ function AdminPage() {
              ) : (
                 <div className="relative space-y-2 md:space-y-0">
                   {activities.map((activity) => (
-                    
                     <div 
                       key={activity._id} 
                       onClick={() => {
-                        // Routes directly to the post detail view if it exists
+                        markAsRead(activity._id); // Mark read on click
                         if (activity.postId) {
                           navigate(`/hub/${activity.postId}`); 
                         } else {
-                          navigate('/hub'); // Fallback route for older notification cards
+                          navigate('/hub'); 
                         }
                       }}
-                      className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-start cursor-pointer group"
+                      className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-center cursor-pointer group"
                     >
-                      {/* Avatar / Dot */}
                       <div className="flex-shrink-0 mr-4">
                         {activity.profilePic ? (
-                          <img
-                            src={activity.profilePic} 
-                            alt={activity.user} 
-                            className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                          />
+                          <img src={activity.profilePic} alt={activity.user} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm border border-gray-300">
                             {activity.user === "A Website Visitor" ? "WV" : activity.user?.charAt(0).toUpperCase()}
@@ -303,7 +306,6 @@ function AdminPage() {
                         )}
                       </div>
                       
-                      {/* Activity Content */}
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-800 break-all overflow-hidden text-sm md:text-base leading-relaxed">
                           <span className="font-bold text-blue-900 mr-1.5">{activity.user}</span> 
@@ -314,54 +316,54 @@ function AdminPage() {
                         </span>
                       </div>
 
-                      {/* 3-Dots Menu Container */}
-                      <div className="relative z-50">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation(); 
-                            setOpenMenuId(openMenuId === activity._id ? null : activity._id);
-                          }}
-                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition focus:outline-none"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                          </svg>
-                        </button>
+                      {/* Right Hand Side: Dot + Menu */}
+                      <div className="flex items-center gap-3">
+                         {/* Unread Indicator */}
+                         {!activity.isRead && (
+                            <div className="h-3 w-3 rounded-full bg-blue-600 flex-shrink-0"></div>
+                         )}
 
-                        {/* Dropdown Menu */}
-                        {openMenuId === activity._id && (
-                          <div 
-                            onClick={(e) => e.stopPropagation()} 
-                            className="absolute right-0 md:right-12 bottom-0 md:top-auto w-56 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
-                          >
-                            <button 
-                              onClick={() => handleDeleteActivity(activity._id)}
-                              className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition rounded-none text-red-600"
-                            >
-                              Delete Log
-                            </button>
+                         {/* 3-Dots Menu Container */}
+                         <div className="relative z-50">
+                           <button 
+                             onClick={(e) => {
+                               e.stopPropagation(); 
+                               setOpenMenuId(openMenuId === activity._id ? null : activity._id);
+                             }}
+                             className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition focus:outline-none"
+                           >
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                             </svg>
+                           </button>
 
-                            <button 
-                              onClick={() => handleClearAllActivities()}
-                              className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition rounded-none text-red-600"
-                            >
-                              Delete All Logs
-                            </button>
-
-                            <button 
-                              onClick={() => setOpenMenuId(null)}
-                              className="w-full text-left px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-100 transition border-t border-gray-100 rounded-none"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
+                           {openMenuId === activity._id && (
+                             <div 
+                               onClick={(e) => e.stopPropagation()} 
+                               className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
+                             >
+                               <button 
+                                 onClick={() => handleDeleteActivity(activity._id)}
+                                 className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
+                               >
+                                 Delete Log
+                               </button>
+                               <button 
+                                 onClick={() => handleClearAllActivities()}
+                                 className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
+                               >
+                                 Delete All Logs
+                               </button>
+                               <button 
+                                 onClick={() => setOpenMenuId(null)}
+                                 className="w-full text-left px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-100 transition border-t"
+                               >
+                                 Cancel
+                               </button>
+                             </div>
+                           )}
+                         </div>
                       </div>
-                      
-                      {/* Unread Indicator */}
-                      {!activity.isRead && (
-                        <div className="h-7 w-7 rounded-full bg-blue-600 mt-2"></div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -369,14 +371,12 @@ function AdminPage() {
            </div>
         )}
 
-        {/* BOOKINGS (Inbox / Detailed) */}
+        {/* BOOKINGS VIEW (Unchanged) */}
         {activeView === 'bookings' && (
           <>
             {!isLoading && !errorMessage && bookings.length === 0 && (
               <p className="text-gray-500">No bookings found yet. Time to do some marketing!</p>
             )}
-
-            {/* Main inbox view */}
             {!selectedUserKey && visibleMasterList.length > 0 && (
               <div className="grid gap-3 text-left w-full mt-4">
                 {visibleMasterList.map((group) => (
@@ -406,7 +406,6 @@ function AdminPage() {
                     </p>
                   </div>
                 ))}
-
                 {visibleCount < masterList.length && (
                   <button 
                     onClick={loadMore}
@@ -417,20 +416,16 @@ function AdminPage() {
                 )}
               </div>
             )}
-
-            {/* Detailed booking view */}
             {selectedUserKey && (
               <div className="grid gap-6 text-left w-full mt-4">
                 {groupedBookingsMap[selectedUserKey].map((b) => (
                   <div key={b._id} className="border p-4 sm:p-6 rounded-lg shadow-md bg-white w-full overflow-hidden">
-                    
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b pb-3 mb-4 gap-2">
                       <h3 className="text-lg sm:text-xl text-blue-800 font-bold break-words">Booking Request</h3>
                       <span className="text-xs sm:text-sm text-gray-500 font-medium break-words">
                         Received: {formatDate(b.createdAt || b.date)} at {formatReceivedTime(b.createdAt || b.date)}
                       </span>
                     </div>
-
                     <div className="grid sm:grid-cols-2 gap-4 text-black mb-6 text-sm sm:text-base w-full">
                       <p className="break-words"><strong>Name:</strong> <span className="text-gray-600">{b.name || "N/A"}</span></p>
                       <p className="break-words"><strong>Email:</strong> <span className="text-gray-600">{b.email || "N/A"}</span></p>
@@ -438,20 +433,17 @@ function AdminPage() {
                       <p className="break-words"><strong>Address:</strong> <span className="text-gray-600">{b.address || "N/A"}</span></p>
                       <p className="break-words"><strong>Service:</strong> <span className="text-gray-600">{b.service || "N/A"}</span></p>
                       <p className="break-words"><strong>Items:</strong> <span className="text-gray-600">{b.items || "None specified"}</span></p>
-                      
                       <div className="sm:col-span-2 w-full">
                         <p><strong>Instructions:</strong></p>
                         <p className="text-gray-600 bg-gray-50 p-3 rounded mt-1 border break-words whitespace-normal">
                           {b.instructions || "No special instructions provided."}
                         </p>
                       </div>
-
                       <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 text-sm text-blue-700/70 font-medium bg-blue-50 p-3 rounded w-full">
                         <p className="break-words"><span className="text-black">📅 Cleaning Date:</span> {formatDate(b.date)}</p>
                         <p className="break-words"><span className="text-black">⏰ Cleaning Time:</span> {b.time || "N/A"}</p>
                       </div>
                     </div>
-                    
                     <div className="border-t pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                       <span className="font-bold text-gray-700 text-sm sm:text-base">Manage Status:</span>
                       <select 
@@ -469,14 +461,12 @@ function AdminPage() {
                         <option value="Completed" disabled={b.status === 'Pending' || !b.status || b.status === 'Completed'}>Completed</option>
                       </select>
                     </div>
-
                   </div>
                 ))}
               </div>
             )}
           </>
         )}
-
       </div>
     </PageWrapper>
   );

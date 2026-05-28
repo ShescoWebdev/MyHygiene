@@ -12,7 +12,7 @@ const Hub = () => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useContext(AuthContext);
-  const [isLiked, setIsLiked] = useState(false);
+  // const [isLiked, setIsLiked] = useState(false);
 
   // Modal & Menu States
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -358,42 +358,42 @@ const Hub = () => {
   };
 
   // To handle like button click with notification
-  const handleHeartClick = async (postId, postText = "this post") => {
-    if (isLiked) return; 
-    setIsLiked(true); 
+const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked) => {
+  
+  if (hasAlreadyLiked) return; 
 
-    let loggedInUser = "A Website Visitor"; 
-    let userImage = null; 
+  let loggedInUser = "A Website Visitor"; 
+  let userImage = null; 
 
-    try {
-      const userStorageString = localStorage.getItem("user");
-      if (userStorageString) {
-        const userObject = JSON.parse(userStorageString);
-        if (userObject) {
-          if (userObject.name) loggedInUser = userObject.name;
-          if (userObject.profilePic) userImage = userObject.profilePic;
-        }
+  try {
+    const userStorageString = localStorage.getItem("user");
+    if (userStorageString) {
+      const userObject = JSON.parse(userStorageString);
+      if (userObject) {
+        if (userObject.name) loggedInUser = userObject.name;
+        if (userObject.profilePic) userImage = userObject.profilePic;
       }
-    } catch (error) {
-      console.error("Failed to parse user from local storage:", error);
     }
+  } catch (error) {
+    console.error("Failed to parse user from local storage:", error);
+  }
 
-    const safeText = String(postText || "this post");
-    const snippet = safeText.length > 40 
-      ? safeText.substring(0, 40) + "..." 
-      : safeText;
+  const safeText = String(postText || "this post");
+  const snippet = safeText.length > 40 
+    ? safeText.substring(0, 40) + "..." 
+    : safeText;
 
-    try {
-      await API.post("/activities", {
-        user: loggedInUser, 
-        action: `liked your post: "${snippet}"`, 
-        profilePic: userImage,
-        postId: postId 
-      });
-    } catch (error) {
-      console.error("Failed to send notification:", error);
-    }
-  };
+  try {
+    await API.post("/activities", {
+      user: loggedInUser, 
+      action: `liked your post: "${snippet}"`, 
+      profilePic: userImage,
+      postId: postId 
+    });
+  } catch (error) {
+    console.error("Failed to send notification:", error);
+  }
+};
 
   return (
     <PageWrapper>
@@ -563,7 +563,7 @@ const Hub = () => {
                           className="focus:outline-none transform transition-transform hover:scale-110 active:scale-75 flex items-center"
                         >
                           <Heart 
-                            onClick={() => handleHeartClick(post._id, post.caption)}
+                            onClick={() => handleHeartClick(post._id, post.caption, isLiked)}
                             size={20} 
                             color={isLiked ? "#f0b000" : "#9ca3af"} 
                             fill={isLiked ? "#f0b000" : "transparent"} 
@@ -709,7 +709,11 @@ const Hub = () => {
                       className="focus:outline-none transform transition-transform active:scale-75"
                     >
                       <Heart 
-                        size={24} 
+                        onClick={() => {
+                          const alreadyLiked = selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId);
+                          handleHeartClick(selectedPost._id, selectedPost.caption, alreadyLiked);
+                        }}
+                        size={28} 
                         color={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "#9ca3af"} 
                         fill={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "transparent"} 
                       />
