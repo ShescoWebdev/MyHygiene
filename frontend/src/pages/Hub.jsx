@@ -290,7 +290,7 @@ const Hub = () => {
         const { data } = await API.put(`/posts/${editPostId}`, formData, {
           headers: { 
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data" 
+            // "Content-Type": "multipart/form-data" 
           }
         });
         
@@ -304,7 +304,7 @@ const Hub = () => {
         const { data } = await API.post("/posts", formData, {
           headers: { 
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data" 
+            // "Content-Type": "multipart/form-data" 
           }
         });
         
@@ -594,7 +594,10 @@ const Hub = () => {
                   {/* Media Content Area */}
                   {post.mediaType === "photo" && post.url && (
                     <div className="h-56 w-full overflow-hidden bg-gray-100 z-10 relative">
-                      <img src={`${BASE_URL}/${post.url}`} alt="Post media" className="w-full h-full object-cover object-top" />
+                      <img 
+                      src={`${BASE_URL}/${post.url}`} 
+                      alt="Post media" 
+                      className="w-full h-full object-cover object-top" />
                     </div>
                   )}
                   {post.mediaType === "video" && post.url && (
