@@ -5,6 +5,7 @@ import PageWrapper from '../components/PageWrapper';
 import API, { BASE_URL } from "../api";
 import { AuthContext } from '../context/AuthContext';
 import SafeNavLink from '../components/SafeNavLink';
+import { Await } from 'react-router-dom';
 
 const Hub = () => {
   const [posts, setPosts] = useState([]);
@@ -12,7 +13,6 @@ const Hub = () => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useContext(AuthContext);
-  // const [isLiked, setIsLiked] = useState(false);
 
   // Modal & Menu States
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -65,7 +65,7 @@ const Hub = () => {
     fetchPosts();
   }, []);
 
-  // To prevent background scrolling when any modal view is active
+  // Prevent background scrolling when modal is active
   useEffect(() => {
     if (selectedPost || showCreateModal) {
       document.body.style.overflow = 'hidden';
@@ -77,7 +77,7 @@ const Hub = () => {
     };
   }, [selectedPost, showCreateModal]);
 
-  // To handle syncing video time when opening modal
+  // Handle syncing video time when opening modal
   useEffect(() => {
     if (selectedPost && selectedPost.mediaType === "video" && modalVideoRef.current) {
       modalVideoRef.current.currentTime = selectedPost.initialTime || 0;
@@ -87,7 +87,7 @@ const Hub = () => {
     }
   }, [selectedPost]);
 
-  // To handle closing modal and syncing back video time if needed
+  // Handle closing modal and syncing back video time
   const closePostModal = () => {
     if (selectedPost?.mediaType === "video" && modalVideoRef.current) {
       const feedVid = videoRefs.current[selectedPost._id];
@@ -101,7 +101,7 @@ const Hub = () => {
     setSelectedPost(null);
   };
 
-  // To close menus when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.post-menu-container')) {
@@ -118,7 +118,7 @@ const Hub = () => {
     };
   }, []);
 
-  // To handle long-press for mobile to enter selection mode
+  // Long-press for mobile to enter selection mode
   const handleTouchStart = (postId) => {
     if (!isAdmin || isSelectionMode) return;
     pressTimer.current = setTimeout(() => {
@@ -134,7 +134,7 @@ const Hub = () => {
     }
   };
 
-  // To toggle selection of posts in selection mode
+  // Toggle selection of posts
   const toggleSelection = (postId) => {
     setSelectedPostIds(prev => 
       prev.includes(postId) 
@@ -156,7 +156,7 @@ const Hub = () => {
     setSelectedPostIds([]);
   };
 
-  // To bulk delete selected posts
+  // Bulk delete selected posts
   const handleBulkDelete = async () => {
     if (selectedPostIds.length === 0) return;
 
@@ -190,7 +190,8 @@ const Hub = () => {
     }
   };
 
-  const handleLike = async (postId) => {
+  // Unified Like Engine (Handles state updates + activity logs safely)
+  const handleLike = async (postId, postCaption = "this post") => {
     if (!currentUserId) {
       Swal.fire({
         icon: 'warning',
@@ -200,6 +201,10 @@ const Hub = () => {
       });
       return;
     }
+
+    // Find current post status to check if it's a new like or an unlike
+    const targetPost = posts.find(p => p._id === postId);
+    const hasAlreadyLiked = targetPost?.likes?.some(liker => (liker._id || liker) === currentUserId);
 
     try {
       const token = localStorage.getItem("token");
@@ -216,8 +221,37 @@ const Hub = () => {
       if (selectedPost && selectedPost._id === postId) {
         setSelectedPost({ ...selectedPost, likes: data.likes });
       }
+
+      // Trigger Activity logging ONLY if it's a new like action
+      if (!hasAlreadyLiked) {
+        let loggedInUser = "A Website Visitor"; 
+        let userImage = null; 
+
+        try {
+          const userStorageString = localStorage.getItem("user");
+          if (userStorageString) {
+            const userObject = JSON.parse(userStorageString);
+            if (userObject) {
+              if (userObject.name) loggedInUser = userObject.name;
+              if (userObject.profilePic) userImage = userObject.profilePic;
+            }
+          }
+        } catch (err) {
+          console.error("Failed to parse local storage user for activity feed context:", err);
+        }
+
+        const safeText = String(postCaption || "this post");
+        const snippet = safeText.length > 40 ? safeText.substring(0, 40) + "..." : safeText;
+
+        await API.post("/activities", {
+          user: loggedInUser, 
+          action: `liked your post: "${snippet}"`, 
+          profilePic: userImage,
+          postId: postId 
+        });
+      }
     } catch (error) {
-      console.error("Error liking post:", error);
+      console.error("Error toggling love reaction connection:", error);
     }
   };
 
@@ -232,8 +266,7 @@ const Hub = () => {
       });
       return;
     }
-    // 1GB limit in bytes (1024 * 1024 * 1024)
-    const MAX_FILE_SIZE = 1073741824; 
+    const MAX_FILE_SIZE = 1073741824; // 1GB limit
     
     if (file && file.size > MAX_FILE_SIZE) {
       Swal.fire({
@@ -274,8 +307,6 @@ const Hub = () => {
             "Content-Type": "multipart/form-data" 
           }
         });
-
-        console.log("Backend response after creation:", data);
         
         const newPost = data.post || data;
         setPosts([newPost, ...posts]);
@@ -357,44 +388,6 @@ const Hub = () => {
     return picUrl.startsWith("http") ? picUrl : `${BASE_URL}/${picUrl}`;
   };
 
-  // To handle like button click with notification
-const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked) => {
-  
-  if (hasAlreadyLiked) return; 
-
-  let loggedInUser = "A Website Visitor"; 
-  let userImage = null; 
-
-  try {
-    const userStorageString = localStorage.getItem("user");
-    if (userStorageString) {
-      const userObject = JSON.parse(userStorageString);
-      if (userObject) {
-        if (userObject.name) loggedInUser = userObject.name;
-        if (userObject.profilePic) userImage = userObject.profilePic;
-      }
-    }
-  } catch (error) {
-    console.error("Failed to parse user from local storage:", error);
-  }
-
-  const safeText = String(postText || "this post");
-  const snippet = safeText.length > 40 
-    ? safeText.substring(0, 40) + "..." 
-    : safeText;
-
-  try {
-    await API.post("/activities", {
-      user: loggedInUser, 
-      action: `liked your post: "${snippet}"`, 
-      profilePic: userImage,
-      postId: postId 
-    });
-  } catch (error) {
-    console.error("Failed to send notification:", error);
-  }
-};
-
   return (
     <PageWrapper>
       <header className='fixed top-0 bg-black w-full h-20 text-white z-[100] flex items-center justify-between px-6 md:px-20 border-b-4 border-red-500 shadow-lg'>
@@ -406,6 +399,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
             </button>
         </SafeNavLink>
       </header>
+
       <div className="bg-[#faf6e8] min-h-screen md:mt-[-25px] pt-28 pb-16 px-4 md:px-10 relative">
         
         {/* Bulk Selection Sticky Top Bar */}
@@ -471,6 +465,9 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
             {posts.map((post) => {
               const isLiked = post.likes?.some(liker => (liker._id || liker) === currentUserId);  
               const isSelected = selectedPostIds.includes(post._id);
+              
+              // Check if post actually contains visual media to display
+              const hasMedia = (post.mediaType === "photo" || post.mediaType === "video") && post.url;
 
               return (
                 <div 
@@ -495,10 +492,10 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                     </div>
                   )}
 
-                  {/* INFO SECTION (Admin - Date/Likes/Caption) */}
+                  {/* INFO SECTION */}
                   <div className={`p-6 pb-4 flex flex-col relative z-20 ${isSelectionMode ? 'pointer-events-none' : ''}`}>
                     
-                    {/* Uploaded By & 3 Dots */}
+                    {/* Uploaded By & Options Menu */}
                     <div className="flex justify-between items-center mb-4 relative z-50">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                          {post.uploadedBy?.profilePic ? (
@@ -513,7 +510,6 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                          <span>{post.uploadedBy?.name || "Admin"}</span>
                       </div>
 
-                      {/* 3 Dots Menu */}
                       {isAdmin && !isSelectionMode && (
                         <div className="relative post-menu-container z-50">
                           <button 
@@ -546,24 +542,22 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                       )}
                     </div>
 
-                    {/* Created At & Like/Unlike */}
+                    {/* Created At & Like Action */}
                     <div className="flex justify-between items-center mb-4 z-40">
                       <div className="flex items-center text-gray-400 text-xs gap-2">
                         <Calendar size={14} />
                         <span>{formatDateTime(post.createdAt)}</span>
                       </div>
 
-                      {/* Like Button */}
                       <div className="relative group flex items-center gap-1 z-40">
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleLike(post._id);
+                            handleLike(post._id, post.caption);
                           }} 
                           className="focus:outline-none transform transition-transform hover:scale-110 active:scale-75 flex items-center"
                         >
                           <Heart 
-                            onClick={() => handleHeartClick(post._id, post.caption, isLiked)}
                             size={20} 
                             color={isLiked ? "#f0b000" : "#9ca3af"} 
                             fill={isLiked ? "#f0b000" : "transparent"} 
@@ -571,33 +565,33 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                         </button>
                         <span className="text-gray-500 text-sm font-semibold">{post.likes?.length || 0}</span>
 
-                          {/* Tooltip */}
-                          {post.likes && post.likes.length > 0 && typeof post.likes[0] === 'object' && (
-                            <div className="absolute top-0 right-10 mb-2 hidden group-hover:block z-[100] w-48 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
-                              <div className="max-h-40 overflow-y-auto p-2 custom-scrollbar">
-                                <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">Reactions</p>
-                                {post.likes.map((liker) => (
-                                  <div key={liker._id} className="flex items-center gap-2 mb-2 last:mb-0 px-1">
-                                    <img src={getHubProfilePic(liker.profilePic, liker.name)} alt={liker.name} className="w-5 h-5 rounded-full object-cover border border-gray-600"/>
-                                    <span className="text-xs font-medium truncate">{liker.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="absolute left-full top-2 right-3 border-[6px] border-transparent border-l-gray-900"></div>
+                        {/* Tooltip List of Likers */}
+                        {post.likes && post.likes.length > 0 && typeof post.likes[0] === 'object' && (
+                          <div className="absolute top-0 right-10 mb-2 hidden group-hover:block z-[100] w-48 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
+                            <div className="max-h-40 overflow-y-auto p-2 custom-scrollbar">
+                              <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">Reactions</p>
+                              {post.likes.map((liker) => (
+                                <div key={liker._id} className="flex items-center gap-2 mb-2 last:mb-0 px-1">
+                                  <img src={getHubProfilePic(liker.profilePic, liker.name)} alt={liker.name} className="w-5 h-5 rounded-full object-cover border border-gray-600"/>
+                                  <span className="text-xs font-medium truncate">{liker.name}</span>
+                                </div>
+                              ))}
                             </div>
-                          )}
+                            <div className="absolute left-full top-2 right-3 border-[6px] border-transparent border-l-gray-900"></div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Caption */}
+                    {/* Dynamic Caption Space Allotment */}
                     {post.caption && (
-                      <p className="text-gray-700 whitespace-pre-wrap line-clamp-3">
+                      <p className={`text-gray-700 whitespace-pre-wrap ${hasMedia ? 'line-clamp-3' : 'line-clamp-[13]'} text-sm md:text-base`}>
                         {post.caption}
                       </p>
                     )}
                   </div>
 
-                  {/* Media Content */}
+                  {/* Media Content Area */}
                   {post.mediaType === "photo" && post.url && (
                     <div className="h-56 w-full overflow-hidden bg-gray-100 z-10 relative">
                       <img src={`${BASE_URL}/${post.url}`} alt="Post media" className="w-full h-full object-cover object-top" />
@@ -613,11 +607,12 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                         className="w-full h-full object-cover" 
                         onClick={(e) => e.stopPropagation()} 
                         onPointerDown={(e) => e.stopPropagation()}
+                        onPointerUp={(e) => e.stopPropagation()}
                       />
                     </div>
                   )}
 
-                  {/* View Details */}
+                  {/* Open Post Action */}
                   <div className={`p-6 pt-4 mt-auto z-20 ${isSelectionMode ? 'pointer-events-none' : ''}`}>
                     <button 
                       onClick={(e) => {
@@ -647,7 +642,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
           </div>
         )}
 
-        {/* Post Details Modal View */}
+        {/* Detailed Modal Overlay View */}
         {selectedPost && (
           <div className="fixed inset-0 bg-black/90 z-[100] flex justify-center items-center overflow-y-auto p-4 md:p-8">
             <div className="bg-white rounded-2xl w-full overflow-y-auto md:overflow-hidden relative shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
@@ -659,7 +654,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                 <X size={24} />
               </button>
 
-              {/* Media Content */}
+              {/* Modal Media Side */}
               {(selectedPost.mediaType === "photo" || selectedPost.mediaType === "video") && selectedPost.url && (
                 <div className="w-full md:w-3/5 bg-black flex items-center justify-center order-2 md:order-1">
                   {selectedPost.mediaType === "photo" ? (
@@ -680,10 +675,10 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                 </div>
               )}
 
-              {/* Info Section */}
+              {/* Modal Text & Info Side */}
               <div className={`w-full flex flex-col p-6 overflow-y-visible md:overflow-y-auto ${selectedPost.mediaType === "text" ? 'md:w-full' : 'md:w-2/5'} order-1 md:order-2`}>
                 
-                {/* Admin Info */}
+                {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
                   {selectedPost.uploadedBy?.profilePic ? (
                     <img 
@@ -699,20 +694,16 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                   </div>
                 </div>
 
-                {/* Created At & Like/Unlike */}
+                {/* Date & Like Engine Trigger */}
                 <div className="flex items-center justify-between mb-4 pb-4 border-b relative z-30">
                   <p className="text-xs text-gray-500 font-medium">{formatDateTime(selectedPost.createdAt)}</p>
 
                   <div className="relative group flex items-center gap-1">
                     <button 
-                      onClick={() => handleLike(selectedPost._id)} 
+                      onClick={() => handleLike(selectedPost._id, selectedPost.caption)} 
                       className="focus:outline-none transform transition-transform active:scale-75"
                     >
                       <Heart 
-                        onClick={() => {
-                          const alreadyLiked = selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId);
-                          handleHeartClick(selectedPost._id, selectedPost.caption, alreadyLiked);
-                        }}
                         size={28} 
                         color={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "#9ca3af"} 
                         fill={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "transparent"} 
@@ -720,7 +711,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                     </button>
                     <span className="text-gray-700 font-semibold text-base ml-1">{selectedPost.likes?.length || 0}</span>
 
-                    {/* Hover Tooltip */}
+                    {/* Modal Hover Tooltip */}
                     {selectedPost.likes && selectedPost.likes.length > 0 && typeof selectedPost.likes[0] === 'object' && (
                       <div className="absolute top-0 right-14 mb-2 hidden group-hover:block z-[80] w-52 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
                         <div className="max-h-48 overflow-y-auto p-2 custom-scrollbar">
@@ -744,12 +735,16 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                   </div>
                 </div>
 
-                {/* Caption */}
+
+                {/* Caption & Content */}
+                {/* Full Caption inside Modal View */}
                 <div className="flex-grow pb-6">
                   <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
                     {selectedPost.caption}
                   </p>
                 </div>
+                
+
 
               </div>
             </div>
@@ -757,7 +752,10 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
         )}
 
 
-         {/* CREATE / EDIT POST MODAL */}
+        
+
+
+          {/* CREATE / EDIT POST MODAL */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/60 z-[100] flex justify-center items-center overflow-y-auto px-4">
             <div className="bg-white rounded-2xl max-w-lg w-full p-6 relative shadow-2xl">
@@ -792,7 +790,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
                     </button>
                     <button 
                       type="button"
-                      onClick={() => setMediaType('text')}
+                      onClick={() => {setMediaType('text'); setFile(null);}}
                       className={`flex-1 py-2 px-3 rounded-lg border flex justify-center items-center gap-2 transition-colors ${mediaType === 'text' ? 'bg-[#f0b000] border-[#f0b000] text-black font-semibold' : 'bg-gray-50 text-gray-600'}`}
                     >
                       <Type size={18} /> Text Only
@@ -838,6 +836,7 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
           </div>
         )}
 
+         
 
       </div>
     </PageWrapper>
@@ -845,3 +844,5 @@ const handleHeartClick = async (postId, postText = "this post", hasAlreadyLiked)
 };
 
 export default Hub;
+
+

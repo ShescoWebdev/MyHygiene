@@ -134,23 +134,13 @@ function AdminPage() {
     }
   };
 
-  const handleViewActivities = async () => {
+  const handleViewActivities = () => {
     setActiveView('activity');
     setSelectedUserKey(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // Optional: Mark all as read when entering the log
-    if (unreadCount > 0) {
-      try {
-        const token = localStorage.getItem("token");
-        await API.put("/activities/mark-read", {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setActivities((prev) => prev.map(a => ({ ...a, isRead: true })));
-      } catch (error) {
-        console.error("Failed to mark all activities as read:", error);
-      }
-    }
+    // The "mark all as read" logic has been successfully banished from here!
+    // Now, unread dots will persist until explicitly clicked.
   };
 
   const handleDeleteActivity = async (activityId) => {
@@ -286,8 +276,8 @@ function AdminPage() {
                   {activities.map((activity) => (
                     <div 
                       key={activity._id} 
-                      onClick={() => {
-                        markAsRead(activity._id); // Mark read on click
+                      onClick={async () => {
+                        await markAsRead(activity._id); 
                         if (activity.postId) {
                           navigate(`/hub/${activity.postId}`); 
                         } else {
