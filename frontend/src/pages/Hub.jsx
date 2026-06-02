@@ -595,7 +595,7 @@ const Hub = () => {
                   {post.mediaType === "photo" && post.url && (
                     <div className="h-56 w-full overflow-hidden bg-gray-100 z-10 relative">
                       <img 
-                      src={`${BASE_URL}/${post.url}`} 
+                      src={post.url}
                       alt="Post media" 
                       className="w-full h-full object-cover object-top" />
                     </div>
@@ -604,7 +604,7 @@ const Hub = () => {
                     <div className="h-56 w-full overflow-hidden cursor-pointer bg-black z-10 relative">
                       <video 
                         ref={(el) => (videoRefs.current[post._id] = el)}
-                        src={`${BASE_URL}/${post.url}`} 
+                        src={post.url}
                         controls 
                         playsInline
                         className="w-full h-full object-cover" 

@@ -77,23 +77,11 @@ export const updateProfilePic = async (req, res) => {
       return res.status(400).json({ message: "Please upload an image file" });
     }
 
-    // To convert the file buffer to a base64 string for cloudinary
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-
-    // Upload to cloudinary
-    const result = await cloudinary.uploader.upload(dataURI, {
-      // creates a folder in cloudinary
-      folder: "myhygiene_avatars",
-      width: 300,
-      crop: "scale"
-    });
-
-    // To save the cloudinary URL to the user in the database
-    user.profilePic = result.secure_url;
+    // ✅ CloudinaryStorage already uploaded the file — req.file.path IS the Cloudinary URL
+    // No manual Buffer/base64 dance needed anymore
+    user.profilePic = req.file.path;
     await user.save();
 
-    // To send back the updated user details
     res.json({
       _id: user._id,
       name: user.name,
@@ -104,13 +92,12 @@ export const updateProfilePic = async (req, res) => {
       token: req.headers.authorization.split(" ")[1],
       role: user.role,
     });
-    
+
   } catch (error) {
     console.error("Image upload error:", error);
     res.status(500).json({ message: "Server error during image upload" });
   }
 };
-
 export const protect = (req, res, next) => {
   const token = req.headers.authorization;
 
