@@ -2,14 +2,14 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 
-// Configure Cloudinary with your .env credentials
+// Cloudinary configuration from .env
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Files go DIRECTLY to Cloudinary — zero disk dependency, works on any server
+// To handle file uploads to Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
@@ -21,7 +21,7 @@ const storage = new CloudinaryStorage({
 
     return {
       folder: "uploads",
-      resource_type: "auto",         // handles images AND videos
+      resource_type: "auto",
       public_id: `${prefix}-${uniqueSuffix}`,
     };
   },

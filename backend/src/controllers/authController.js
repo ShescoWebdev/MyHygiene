@@ -77,8 +77,7 @@ export const updateProfilePic = async (req, res) => {
       return res.status(400).json({ message: "Please upload an image file" });
     }
 
-    // ✅ CloudinaryStorage already uploaded the file — req.file.path IS the Cloudinary URL
-    // No manual Buffer/base64 dance needed anymore
+    // To upload profile image to Cloudinary
     user.profilePic = req.file.path;
     await user.save();
 
