@@ -73,7 +73,7 @@ export default function SignIn() {
       
       <div className="md:w-1/2 text-center md:text-left">
         <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
-          {isLogin ? "Welcome Back" : "Join Us Today"}
+          {isLogin ? "Welcome" : "Join Us Today"}
         </h2>
         <p className="text-black/70 text-lg">
           {isLogin 
