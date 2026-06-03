@@ -6,6 +6,7 @@ import API, { BASE_URL } from "../api";
 import { AuthContext } from '../context/AuthContext';
 import SafeNavLink from '../components/SafeNavLink';
 import { Await } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const Hub = () => {
   const [posts, setPosts] = useState([]);
@@ -37,6 +38,12 @@ const Hub = () => {
   const videoRefs = useRef({});
   const modalVideoRef = useRef(null);
 
+  // To Handle Highlighting Post from Admin Activity Click
+  const location = useLocation();
+  const [highlightedPostId, setHighlightedPostId] = useState(null);
+  const postCardRefs = useRef({});
+
+  // Fetch posts and user info on mount
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -118,6 +125,31 @@ const Hub = () => {
     };
   }, []);
 
+  // Scroll to + highlight a specific post when arriving from Activity Log
+  useEffect(() => {
+    if (!location.state?.highlightPostId || posts.length === 0) return;
+
+    const targetId = location.state.highlightPostId;
+    setHighlightedPostId(targetId);
+
+    // Small delay to let the DOM paint the cards before scrolling
+    const scrollTimer = setTimeout(() => {
+      const el = postCardRefs.current[targetId];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+
+    // Stop highlighting after 3.5 seconds
+    const clearTimer = setTimeout(() => setHighlightedPostId(null), 3500);
+
+    // Wipe the router state so a hard refresh doesn't re-trigger this
+    window.history.replaceState({}, '');
+
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearTimer);
+    };
+  }, [posts, location.state]);
+
   // Long-press for mobile to enter selection mode
   const handleTouchStart = (postId) => {
     if (!isAdmin || isSelectionMode) return;
@@ -156,39 +188,201 @@ const Hub = () => {
     setSelectedPostIds([]);
   };
 
-  // Bulk delete selected posts
-  const handleBulkDelete = async () => {
-    if (selectedPostIds.length === 0) return;
+  // Bulk Delete
+const handleBulkDelete = async () => {
+  if (selectedPostIds.length === 0) return;
 
-    const confirm = await Swal.fire({
-      title: 'Delete Selected Posts?',
-      text: `You are about to delete ${selectedPostIds.length} post(s). This cannot be undone!`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete them!'
+  // To Confirm Deletion of Multiple Posts
+  const { isConfirmed } = await Swal.fire({
+    title: `Delete ${selectedPostIds.length} post${selectedPostIds.length > 1 ? 's' : ''}?`,
+    text: "All selected posts will be permanently removed.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  });
+
+  if (!isConfirmed) return;
+
+  // To Manage Cancellation & Progress
+  const controller = new AbortController();
+  let isComplete = false; // Guards against race condition on fast completions
+
+  // To Show Progress & Allow Cancellation
+  Swal.fire({
+    title: 'Deleting...',
+    html: `Removing <b>${selectedPostIds.length}</b> post${selectedPostIds.length > 1 ? 's' : ''}...`,
+    showConfirmButton: true,
+    confirmButtonText: 'Deleting',
+    confirmButtonColor: '#dc2626',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+    cancelButtonColor: '#6b7280',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+      const confirmBtn = Swal.getConfirmButton();
+      if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+    },
+  }).then(() => {
+    // To Abort Deletion
+    if (!isComplete) controller.abort();
+  });
+
+  // To Perform Deletion
+  try {
+    const token = localStorage.getItem("token");
+
+    const results = await Promise.allSettled(
+      selectedPostIds.map((id) =>
+        API.delete(`/posts/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        })
+      )
+    );
+
+    isComplete = true;
+
+    // To determine which selections succeeded before potential cancellation
+    const succeededIds = selectedPostIds.filter((_, i) => results[i].status === 'fulfilled');
+    const wasCancelled = controller.signal.aborted;
+
+    if (succeededIds.length > 0) {
+      setPosts((prev) => prev.filter((p) => !succeededIds.includes(p._id)));
+    }
+
+    if (wasCancelled) {
+      if (succeededIds.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Cancelled',
+          text: 'No posts were removed.',
+          confirmButtonColor: '#f0b000',
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        cancelSelectionMode();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Partially Deleted',
+          html: `<b>${succeededIds.length}</b> post${succeededIds.length > 1 ? 's were' : ' was'} already deleted before you cancelled.`,
+          confirmButtonColor: '#f0b000',
+        });
+      }
+    } else {
+      cancelSelectionMode();
+      Swal.fire({
+        icon: 'success',
+        title: 'Deleted!',
+        text: `${succeededIds.length} post${succeededIds.length > 1 ? 's' : ''} removed.`,
+        confirmButtonColor: '#f0b000',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  } catch (err) {
+    isComplete = true;
+    if (!controller.signal.aborted) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#f0b000',
+      });
+    }
+  }
+};
+
+
+// Single Delete
+const handleDelete = async (postId) => {
+  setMenuOpenPostId(null);
+  setModalMenuOpen(false);
+
+  // To Confirm
+  const { isConfirmed } = await Swal.fire({
+    title: 'Delete this post?',
+    text: "This action cannot be undone.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel',
+  });
+
+  if (!isConfirmed) return;
+
+  const controller = new AbortController();
+  let isComplete = false;
+
+  // To Show Progress & Allow Cancellation
+  Swal.fire({
+    title: 'Deleting...',
+    text: 'Removing this post...',
+    showConfirmButton: true,
+    confirmButtonText: 'Deleting',
+    confirmButtonColor: '#dc2626',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+    cancelButtonColor: '#6b7280',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+      const confirmBtn = Swal.getConfirmButton();
+      if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+    },
+  }).then(() => {
+    if (!isComplete) controller.abort();
+  });
+
+  // To Perform Deletion
+  try {
+    const token = localStorage.getItem("token");
+    await API.delete(`/posts/${postId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
     });
 
-    if (confirm.isConfirmed) {
-      try {
-        const token = localStorage.getItem("token");
-        await Promise.all(
-          selectedPostIds.map(id => 
-            API.delete(`/posts/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-          )
-        );
-        
-        setPosts(posts.filter((p) => !selectedPostIds.includes(p._id)));
-        cancelSelectionMode();
-        
-        Swal.fire('Deleted!', 'Selected posts have been deleted.', 'success');
-      } catch (error) {
-        console.error("Error bulk deleting posts:", error);
-        Swal.fire('Error!', 'Failed to delete some posts.', 'error');
-      }
+    isComplete = true;
+    setPosts((prev) => prev.filter((p) => p._id !== postId));
+    if (selectedPost?._id === postId) setSelectedPost(null);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Deleted!',
+      text: 'Post has been removed.',
+      confirmButtonColor: '#f0b000',
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    isComplete = true;
+    if (controller.signal.aborted) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cancelled',
+        text: 'Deletion was cancelled.',
+        confirmButtonColor: '#f0b000',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to delete. Please try again.',
+        confirmButtonColor: '#f0b000',
+      });
     }
-  };
+  }
+};
 
   // Unified Like Engine (Handles state updates + activity logs safely)
   const handleLike = async (postId, postCaption = "this post") => {
@@ -222,7 +416,7 @@ const Hub = () => {
         setSelectedPost({ ...selectedPost, likes: data.likes });
       }
 
-      // Trigger Activity logging ONLY if it's a new like action
+      // Trigger Activity logging only if it's a new like action
       if (!hasAlreadyLiked) {
         let loggedInUser = "A Website Visitor"; 
         let userImage = null; 
@@ -322,6 +516,7 @@ const Hub = () => {
     }
   };
 
+
   const handleEdit = (post) => {
     setIsEditing(true);
     setEditPostId(post._id);
@@ -331,38 +526,6 @@ const Hub = () => {
     setShowCreateModal(true);
     setMenuOpenPostId(null);
     setModalMenuOpen(false);
-  };
-
-  const handleDelete = async (postId) => {
-    setMenuOpenPostId(null);
-    setModalMenuOpen(false);
-    
-    const confirm = await Swal.fire({
-      title: 'Delete this post?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!'
-    });
-
-    if (confirm.isConfirmed) {
-      try {
-        const token = localStorage.getItem("token");
-        await API.delete(`/posts/${postId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setPosts(posts.filter((p) => p._id !== postId));
-        if (selectedPost && selectedPost._id === postId) {
-          setSelectedPost(null);
-        }
-        Swal.fire('Deleted!', 'The post has been deleted.', 'success');
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        Swal.fire('Error!', 'Failed to delete the post.', 'error');
-      }
-    }
   };
 
   const closeCreateModal = () => {
@@ -471,17 +634,21 @@ const Hub = () => {
 
               return (
                 <div 
-                  key={post._id} 
+                  key={post._id}
+                  ref={(el) => (postCardRefs.current[post._id] = el)}
                   onPointerDown={() => handleTouchStart(post._id)}
                   onPointerUp={handleTouchEnd}
                   onPointerLeave={handleTouchEnd}
                   onClick={() => {
                     if (isSelectionMode) toggleSelection(post._id);
-                  }}
-                  className={`bg-white rounded-2xl shadow-lg flex flex-col transition-all duration-300 border relative 
+                    }}
+                  className={`bg-white rounded-2xl shadow-lg flex flex-col transition-all duration-700 border relative 
                     ${isSelectionMode ? 'cursor-pointer' : ''} 
                     ${isSelected ? 'ring-4 ring-red-500 scale-[0.98]' : 'border-gray-100'} 
                     ${isSelectionMode && !isSelected ? 'opacity-70 grayscale-[30%]' : ''}
+                    ${highlightedPostId === post._id ? 
+                      'ring-1 ring-[#f0b000] bg-yellow-50 animate-pulse' 
+                      : ''}
                     `}
                 >
                   
@@ -597,7 +764,9 @@ const Hub = () => {
                       <img 
                       src={post.url}
                       alt="Post media" 
-                      className="w-full h-full object-cover object-top" />
+                      className="w-full h-full cursor-pointer object-cover object-top" 
+                      onClick={setSelectedPost.bind(null, post)}
+                      />
                     </div>
                   )}
                   {post.mediaType === "video" && post.url && (
@@ -662,14 +831,14 @@ const Hub = () => {
                 <div className="w-full md:w-3/5 bg-black flex items-center justify-center order-2 md:order-1">
                   {selectedPost.mediaType === "photo" ? (
                     <img 
-                      src={`${BASE_URL}/${selectedPost.url}`} 
+                      src={selectedPost.url} 
                       alt="Full post media" 
                       className="w-full max-h-[90vh] rounded-b-2xl md:rounded-b-none md:rounded-l-2xl object-contain" 
                     />
                   ) : (
                     <video 
                       ref={modalVideoRef}
-                      src={`${BASE_URL}/${selectedPost.url}`} 
+                      src={selectedPost.url} 
                       controls 
                       playsInline
                       className="w-full max-h-[90vh] cursor-pointer object-contain" 

@@ -118,21 +118,29 @@ function AdminPage() {
   // Unread notification count
   const unreadCount = activities.filter(a => !a.isRead).length;
 
-  // New: Mark specific notification as read
+  // Mark specific notification as read
   const markAsRead = async (activityId) => {
-    const activity = activities.find(a => a._id === activityId);
-    if (!activity || activity.isRead) return;
+  const activity = activities.find(a => a._id === activityId);
+  if (!activity || activity.isRead) return;
 
-    try {
-        const token = localStorage.getItem("token");
-        await API.put(`/activities/${activityId}/read`, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setActivities((prev) => prev.map(a => a._id === activityId ? { ...a, isRead: true } : a));
-    } catch (error) {
-        console.error("Failed to mark read:", error);
-    }
-  };
+  // Dot disappears and bell count drops instantly in UI
+  setActivities((prev) =>
+    prev.map(a => a._id === activityId ? { ...a, isRead: true } : a)
+  );
+
+  try {
+    const token = localStorage.getItem("token");
+    await API.put(`/activities/${activityId}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (error) {
+    console.error("Failed to mark read on server — reverting:", error);
+    // Revert only if server actually failed
+    setActivities((prev) =>
+      prev.map(a => a._id === activityId ? { ...a, isRead: false } : a)
+    );
+  }
+};
 
   const handleViewActivities = () => {
     setActiveView('activity');
@@ -277,13 +285,9 @@ function AdminPage() {
                     <div 
                       key={activity._id} 
                       onClick={async () => {
-                        await markAsRead(activity._id); 
-                        if (activity.postId) {
-                          navigate(`/hub/${activity.postId}`); 
-                        } else {
-                          navigate('/hub'); 
-                        }
-                      }}
+                      await markAsRead(activity._id);
+                      navigate('/hub', { state: { highlightPostId: activity.postId } });
+                    }}
                       className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-center cursor-pointer group"
                     >
                       <div className="flex-shrink-0 mr-4">
