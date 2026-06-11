@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+// Middleware to protect routes
 export const protect = async (req, res, next) => {
   let token;
 
@@ -19,6 +20,7 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Middleware to optionally protect routes to allow guest access
 export const optionalProtect = async (req, res, next) => {
   let token;
 

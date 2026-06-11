@@ -36,17 +36,17 @@ function Testimonials() {
 
       setActive(0)
 
-      // Start flip animation after delay
+      // To start flip animation after delay
       setTimeout(() => {
         setIsSliding(false)
       }, FLIP_DELAY)
 
-      // Slide after brief pause to show flipped card
+      // To slide after brief pause to show flipped card
       setTimeout(() => {
         setIsSliding(true)
       }, READ_TIME)
 
-      // Rearrange items after slide animation completes
+      // To rearrange items after slide animation completes
       setTimeout(() => {
         setItems(prev => {
           const first = prev[0]

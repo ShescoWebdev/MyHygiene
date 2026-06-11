@@ -114,7 +114,7 @@ export const updatePost = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to edit this post." });
     }
 
-    // Update caption if provided
+    // To update caption if provided
     if (req.body.caption !== undefined) {
       post.caption = req.body.caption;
     }
@@ -155,11 +155,11 @@ export const deletePost = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to delete this post." });
     }
 
-    // Delete the post from the database
+    // To delete the post from the database
     await post.deleteOne(); 
 
     // To delete the image/video file from server 
-    // storage (e.g., using 'fs.unlinkSync'), we do that here before returning the response.
+    // storage (e.g., using 'fs.unlinkSync'), I do that here before returning the response.
 
     res.status(200).json({ message: "Post deleted successfully!" });
 
@@ -172,7 +172,7 @@ export const deletePost = async (req, res) => {
 // To delete multiple posts at once
 export const deleteMultiplePosts = async (req, res) => {
   try {
-    const { postIds } = req.body; // Expecting an array of post IDs
+    const { postIds } = req.body;
 
     if (!postIds || postIds.length === 0) {
       return res.status(400).json({ message: "No posts selected for deletion." });

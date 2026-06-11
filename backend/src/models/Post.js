@@ -19,7 +19,6 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    // Array of users who liked the post
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

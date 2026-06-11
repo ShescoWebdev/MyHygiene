@@ -25,7 +25,7 @@
         instructions,
       });
 
-      // To trigger notifications and not await them, but respond to frontend immediately
+      // To trigger notifications
       sendEmail(booking).catch(err => console.error("🚨 Email Failed:", err.message));
       sendWhatsApp(booking).catch(err => console.error("🚨 WhatsApp Failed:", err.message));
       await logActivity(req.body.name, `requested a ${req.body.service} booking`);
@@ -42,7 +42,7 @@
   // To get bookings
   export const getMyBookings = async (req, res) => {
     try {
-      // Check if user exists first!
+      // To check if user exists
       if (!req.user || !req.user._id) {
         return res.status(401).json({ message: "Not authorized, user missing" });
       }
@@ -66,7 +66,7 @@
     res.json({ message: "Booking removed" });
   };
 
-  // To update booking status (Admin only)
+  // To update booking status
   export const updateBookingStatus = async (req, res) => {
     try {
       const { status } = req.body;
@@ -81,7 +81,7 @@
       
       await booking.save();
 
-      // To trigger notifications if the status changed, but not await them to avoid delaying the response
+      // To trigger notifications if the status changed
       if (oldStatus !== booking.status) {
         sendEmail(booking, true).catch(err => console.error("🚨 Update Email Failed:", err.message));
         sendWhatsApp(booking, true).catch(err => console.error("🚨 Update WhatsApp Failed:", err.message));

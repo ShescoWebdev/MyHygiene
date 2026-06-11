@@ -18,13 +18,13 @@ function Footer() {
 
   const quickRef = useRef(null);
 
-  // Close all dropdowns
+  // To close all dropdowns
   const closeAll = () => {
     setQuickOpen(false);
     setGalleryOpen(false);
   };
 
-  // Close dropdowns when clicking outside
+  // To close dropdowns when clicking outside of them
   useEffect(() => {
     function handleClickOutside(e) {
       if (quickRef.current && !quickRef.current.contains(e.target)) {
@@ -38,7 +38,7 @@ function Footer() {
     };
   }, []);
 
-  // Safely parse user data from localStorage
+  // To safely parse user data from localStorage
   let user = null;
   try {
     const userString = localStorage.getItem("user");

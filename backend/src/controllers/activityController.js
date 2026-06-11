@@ -10,7 +10,7 @@ export const getActivities = async (req, res) => {
   }
 };
 
-// To mark all activities as read (e.g., when admin clicks "Mark All as Read")
+// To mark all activities as read
 export const markAllAsRead = async (req, res) => {
   try {
     await Activity.updateMany({ isRead: false }, { isRead: true });
@@ -20,7 +20,7 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-// To help log an activity from anywhere in the backend (e.g., after a user creates a post, or an admin deletes a comment)
+// To help log an activity from anywhere in the backend 
 export const logActivity = async (user, actionText, profilePic = null, postId = null) => {
   try {
     const initials = user
@@ -42,7 +42,7 @@ export const logActivity = async (user, actionText, profilePic = null, postId = 
   }
 };
 
-// To create a new activity log entry (e.g., when a user performs an action that we want to track)
+// To create a new activity log entry
 export const createActivityLog = async (req, res) => {
   try {
     const { user, action, profilePic, postId } = req.body;
@@ -56,7 +56,7 @@ export const createActivityLog = async (req, res) => {
   }
 };
 
-// To delete a specific activity log entry (e.g., when an admin wants to remove a notification)
+// To delete a specific activity log entry
 export const deleteActivity = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,7 +67,7 @@ export const deleteActivity = async (req, res) => {
   }
 };
 
-// To delete all activity logs (Clear All)
+// To delete all activity logs
 export const deleteAllActivities = async (req, res) => {
   try {
     await Activity.deleteMany({});

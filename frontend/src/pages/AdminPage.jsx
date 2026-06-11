@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import API from "../api";
 import PageWrapper from "../components/PageWrapper";
@@ -10,7 +10,7 @@ const formatDate = (dateString) => {
   if (!dateString) return "Not specified";
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   const d = new Date(dateString);
-  return d.toLocaleDateString('en-US', options); 
+  return d.toLocaleDateString('en-US', options);
 };
 
 // To format the exact time the booking was received by the server
@@ -22,48 +22,53 @@ const formatReceivedTime = (dateString) => {
 
 // To view and manage all bookings & activities
 function AdminPage() {
-  const navigate = useNavigate(); 
-  
-  const [bookings, setBookings] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); 
-  const [errorMessage, setErrorMessage] = useState(null); 
-  const [visibleCount, setVisibleCount] = useState(10);
-  const [openMenuId, setOpenMenuId] = useState(null); 
-  
-  const [selectedUserKey, setSelectedUserKey] = useState(null);
-  
-  // State to toggle between the main inbox and the activity timeline
-  const [activeView, setActiveView] = useState('bookings'); // 'bookings' | 'activity'
+  const navigate = useNavigate();
 
-  // Live state for our database activities
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [selectedUserKey, setSelectedUserKey] = useState(null);
+
+  // State to toggle between the main inbox and the activity timeline
+  const [activeView, setActiveView] = useState('bookings');
+
+  // Live state for the database activities
   const [activities, setActivities] = useState([]);
 
+  // To fetch both bookings and activities on component mount
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const token = localStorage.getItem("token"); 
+        const token = localStorage.getItem("token");
 
         // Fetch Bookings
         const { data: bookingsData } = await API.get("/bookings", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
         let bookingsArray = Array.isArray(bookingsData) ? bookingsData : (bookingsData.bookings || []);
         bookingsArray.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
         setBookings(bookingsArray);
 
-        // Fetch Activities
+        // To fetch Activities with sessionStorage merge
         const { data: activityData } = await API.get("/activities", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setActivities(activityData);
+        const locallyRead = new Set(
+          JSON.parse(sessionStorage.getItem('readActivities') || '[]')
+        );
+        const mergedActivities = activityData.map(a =>
+          locallyRead.has(a._id) ? { ...a, isRead: true } : a
+        );
+        setActivities(mergedActivities);
 
       } catch (error) {
         console.error("Oops, failed to fetch data:", error);
-        if (error.response && error.response.status === 401) {
-             setErrorMessage("Unauthorized! You need Admin privileges.");
+        if (error.response?.status === 401) {
+          setErrorMessage("Unauthorized! You need Admin privileges.");
         } else {
-             setErrorMessage(error.message || "Something went wrong fetching the data.");
+          setErrorMessage(error.message || "Something went wrong fetching the data.");
         }
       } finally {
         setIsLoading(false);
@@ -73,29 +78,69 @@ function AdminPage() {
     fetchAll();
   }, []);
 
+  
+
+  // Back button handling in booking detail view
+  useEffect(() => {
+    if (selectedUserKey) {
+      window.history.pushState({ adminSubView: 'bookingDetail' }, '');
+
+      const handlePopState = () => {
+        setSelectedUserKey(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [selectedUserKey]);
+
+  // Back button handling in activity log view
+  useEffect(() => {
+    if (activeView === 'activity') {
+      window.history.pushState({ adminSubView: 'activityLog' }, '');
+
+      const handlePopState = () => {
+        setActiveView('bookings');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [activeView]);
+
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      
-      await API.put(`/bookings/${bookingId}/status`, 
-        { status: newStatus }, 
+      await API.put(`/bookings/${bookingId}/status`,
+        { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setBookings((prevBookings) => 
-        prevBookings.map((b) => 
+      setBookings((prevBookings) =>
+        prevBookings.map((b) =>
           b._id === bookingId ? { ...b, status: newStatus } : b
         )
       );
-
       Swal.fire({
-        toast: true, position: 'top-end', icon: 'success', title: 'Status updated', showConfirmButton: false, timer: 1500
+        toast: true, 
+        position: 'top-end', 
+        icon: 'success', 
+        title: 'Status updated', 
+        showConfirmButton: false, 
+        timer: 1500
       });
-
     } catch (error) {
       console.error("Failed to update status:", error);
       Swal.fire({
-        icon: 'error', title: 'Update Failed', text: 'Failed to update status.', confirmButtonColor: '#f0b000'
+        icon: 'error', 
+        title: 'Update Failed', 
+        text: 'Failed to update status.', 
+        confirmButtonColor: '#f0b000'
       });
     }
   };
@@ -115,99 +160,248 @@ function AdminPage() {
 
   const visibleMasterList = masterList.slice(0, visibleCount);
 
-  // Unread notification count
-  const unreadCount = activities.filter(a => !a.isRead).length;
+  /**
+   * ACTIVITY GROUPING
+   * To group activities by postId - same post reactions stack into one notification
+   */
+  const groupedActivityList = Object.values(
+    activities.reduce((acc, activity) => {
+      const key = activity.postId || `solo_${activity._id}`;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(activity);
+      return acc;
+    }, {})
+  )
+  .map(group => {
+    const sorted = [...group].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return {
+      key: sorted[0].postId || sorted[0]._id,
+      postId: sorted[0].postId,
+      activities: sorted,
+      latest: sorted[0],
+      count: sorted.length,
+      hasUnread: sorted.some(a => !a.isRead),
+      allIds: sorted.map(a => a._id),
+    };
+  })
+  .sort((a, b) => new Date(b.latest.createdAt) - new Date(a.latest.createdAt));
 
-  // Mark specific notification as read
-  const markAsRead = async (activityId) => {
-  const activity = activities.find(a => a._id === activityId);
-  if (!activity || activity.isRead) return;
+  // To show the red number count on the bell icon for unread notifications
+  const unreadCount = groupedActivityList.filter(g => g.hasUnread).length;
 
-  // Dot disappears and bell count drops instantly in UI
-  setActivities((prev) =>
-    prev.map(a => a._id === activityId ? { ...a, isRead: true } : a)
-  );
+  // To build the text like "James and John liked your post" or "James, John, and 3 others liked your post"
+  const buildLikerText = (group) => {
+    const names = group.activities.map(a => a.user);
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names[0]}, ${names[1]}, and ${names.length - 2} other${names.length - 2 > 1 ? 's' : ''}`;
+  };
 
-  try {
-    const token = localStorage.getItem("token");
-    await API.put(`/activities/${activityId}/read`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-  } catch (error) {
-    console.error("Failed to mark read on server — reverting:", error);
-    // Revert only if server actually failed
-    setActivities((prev) =>
-      prev.map(a => a._id === activityId ? { ...a, isRead: false } : a)
+  // To mark unread activity in a grouped notification as read at once
+  const markGroupAsRead = async (group) => {
+    const unreadIds = group.activities.filter(a => !a.isRead).map(a => a._id);
+    if (unreadIds.length === 0) return;
+
+    // To make all dots in group disappear
+    setActivities(prev =>
+      prev.map(a => unreadIds.includes(a._id) ? { ...a, isRead: true } : a)
     );
-  }
-};
+
+    // To make sure read state persists on page refresh by saving to sessionStorage
+    const locallyRead = new Set(JSON.parse(sessionStorage.getItem('readActivities') || '[]'));
+    unreadIds.forEach(id => locallyRead.add(id));
+    sessionStorage.setItem('readActivities', JSON.stringify([...locallyRead]));
+
+    // Background sync to server
+    try {
+      const token = localStorage.getItem("token");
+      await Promise.all(
+        unreadIds.map(id =>
+          API.put(`/activities/${id}/read`, {}, { headers: { Authorization: `Bearer ${token}` } })
+        )
+      );
+    } catch (error) {
+      console.error("Failed to sync group read state:", error);
+    }
+  };
 
   const handleViewActivities = () => {
     setActiveView('activity');
     setSelectedUserKey(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // The "mark all as read" logic has been successfully banished from here!
-    // Now, unread dots will persist until explicitly clicked.
   };
 
-  const handleDeleteActivity = async (activityId) => {
-    setOpenMenuId(null); 
-    Swal.fire({
-      title: "Are you sure?",
+  // To delete a group of activity logs
+  const handleDeleteActivityGroup = async (allIds) => {
+    setOpenMenuId(null);
+
+    const { isConfirmed } = await Swal.fire({
+      title: allIds.length > 1 ? `Delete these ${allIds.length} logs?` : "Delete this log?",
       text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!"
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await API.delete(`/activities/${activityId}`);
-          setActivities((prev) => prev.filter((item) => item._id !== activityId));
-          Swal.fire("Deleted!", "Notification removed.", "success");
-        } catch (error) {
-          Swal.fire("Error!", "Could not delete this item.", "error");
-        }
-      }
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
     });
+
+    if (!isConfirmed) return;
+
+    const controller = new AbortController();
+    let isComplete = false;
+
+    Swal.fire({
+      title: 'Deleting...',
+      text: `Removing ${allIds.length > 1 ? 'these logs' : 'this log'}...`,
+      showConfirmButton: true,
+      confirmButtonText: 'Deleting',
+      confirmButtonColor: '#d33',
+      showCancelButton: true,
+      cancelButtonText: 'Cancel',
+      cancelButtonColor: '#6b7280',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+        const confirmBtn = Swal.getConfirmButton();
+        if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+      },
+    }).then(() => {
+      if (!isComplete) controller.abort();
+    });
+
+    try {
+      await Promise.allSettled(
+        allIds.map(id => API.delete(`/activities/${id}`, { signal: controller.signal }))
+      );
+
+      isComplete = true;
+      setActivities(prev => prev.filter(a => !allIds.includes(a._id)));
+
+      // Clean deleted IDs from sessionStorage to prevent them from reappearing as unread after refresh
+      const locallyRead = new Set(JSON.parse(sessionStorage.getItem('readActivities') || '[]'));
+      allIds.forEach(id => locallyRead.delete(id));
+      sessionStorage.setItem('readActivities', JSON.stringify([...locallyRead]));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Deleted!',
+        text: 'Log removed.',
+        confirmButtonColor: '#f0b000',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      isComplete = true;
+      if (controller.signal.aborted) {
+        Swal.fire({ 
+          icon: 'info', 
+          title: 'Cancelled', 
+          text: 'Deletion was cancelled.', 
+          confirmButtonColor: '#f0b000', 
+          timer: 2000, 
+          showConfirmButton: false 
+        });
+      } else {
+        Swal.fire({ 
+          icon: 'error', 
+          title: 'Error', 
+          text: 'Could not delete this log.', 
+          confirmButtonColor: '#f0b000' 
+        });
+      }
+    }
   };
 
+  // To clear all activity logs
   const handleClearAllActivities = async () => {
     setOpenMenuId(null);
-    Swal.fire({
+
+    const { isConfirmed } = await Swal.fire({
       title: "Clear all logs?",
       text: "This will permanently wipe your entire notification history!",
-      icon: "error", 
+      icon: "error",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, clear all!"
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await API.delete("/activities");
-          setActivities([]); 
-          Swal.fire("Cleared!", "All activity logs have been wiped clean.", "success");
-        } catch (error) {
-          Swal.fire("Error!", "Failed to clear activity logs.", "error");
-        }
-      }
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, clear all!",
+      cancelButtonText: "Cancel",
     });
+
+    if (!isConfirmed) return;
+
+    const controller = new AbortController();
+    let isComplete = false;
+
+    Swal.fire({
+      title: 'Clearing...',
+      text: 'Wiping all activity logs...',
+      showConfirmButton: true,
+      confirmButtonText: 'Clearing',
+      confirmButtonColor: '#d33',
+      showCancelButton: true,
+      cancelButtonText: 'Cancel',
+      cancelButtonColor: '#6b7280',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+        const confirmBtn = Swal.getConfirmButton();
+        if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+      },
+    }).then(() => {
+      if (!isComplete) controller.abort();
+    });
+
+    try {
+      await API.delete("/activities", { signal: controller.signal });
+
+      isComplete = true;
+      setActivities([]);
+      sessionStorage.removeItem('readActivities');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Cleared!',
+        text: 'All activity logs wiped clean.',
+        confirmButtonColor: '#f0b000',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      isComplete = true;
+      if (controller.signal.aborted) {
+        Swal.fire({ 
+          icon: 'info', 
+          title: 'Cancelled', 
+          text: 'Clear operation cancelled.', 
+          confirmButtonColor: '#f0b000', 
+          timer: 2000, 
+          showConfirmButton: false 
+        });
+      } else {
+        Swal.fire({ 
+          icon: 'error', 
+          title: 'Error', 
+          text: 'Failed to clear activity logs.', 
+          confirmButtonColor: '#f0b000' 
+        });
+      }
+    }
   };
 
   return (
     <PageWrapper>
       <div className="fixed top-0 left-0 w-full z-50 bg-[#000] backdrop-blur-lg shadow-md border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 md:py-4 py-5 flex justify-between items-center">
-          
+
           <h2 className="text-xl sm:text-2xl font-bold text-white break-words">
             {activeView === 'activity' ? "Activity Log" : selectedUserKey ? "Booking Details" : "All Bookings"}
           </h2>
 
           <div className="flex items-center gap-4 sm:gap-6">
-            <button 
+            <button
               onClick={handleViewActivities}
               className="relative p-1 text-[#f0b000] scale-90 hover:scale-100 transition-transform duration-500"
             >
@@ -222,15 +416,15 @@ function AdminPage() {
             </button>
 
             {activeView === 'activity' ? (
-               <button 
-                  onClick={() => {
-                    setActiveView('bookings');
-                    window.scrollTo({ top: 0, behavior: 'smooth' }); 
-                  }}
-                  className="text-sm font-bold text-[#f0b000] hover:text-[#dba102] underline whitespace-nowrap"
-               >
-                 &larr; Back to Bookings
-               </button>
+              <button
+                onClick={() => {
+                  setActiveView('bookings');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="text-sm font-bold text-[#f0b000] hover:text-[#dba102] underline whitespace-nowrap"
+              >
+                &larr; Back to Bookings
+              </button>
             ) : !selectedUserKey ? (
               <SafeNavLink to="/">
                 <button className="text-sm font-bold text-blue-400 hover:text-blue-300 underline whitespace-nowrap">
@@ -238,10 +432,10 @@ function AdminPage() {
                 </button>
               </SafeNavLink>
             ) : (
-              <button 
+              <button
                 onClick={() => {
                   setSelectedUserKey(null);
-                  window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="text-sm font-bold text-blue-400 hover:text-blue-300 underline whitespace-nowrap"
               >
@@ -253,7 +447,7 @@ function AdminPage() {
       </div>
 
       <div className="w-full max-w-5xl mx-auto pb-12 pt-10 md:pt-7 px-4 sm:px-6 relative text-center">
-          
+
         {isLoading && <p className="text-gray-500 animate-pulse">Fetching data... hold tight!</p>}
         {errorMessage && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-left">
@@ -263,109 +457,121 @@ function AdminPage() {
 
         {/* ACTIVITY LOG TIMELINE */}
         {activeView === 'activity' && (
-           <div className="w-full text-left bg-white rounded-lg shadow-sm border p-4 sm:p-6 mt-4 md:mt-0 relative">
-             
-             {openMenuId !== null && (
-               <div 
-                 className="fixed inset-0 z-40 bg-transparent cursor-default" 
-                 onClick={(e) => {
-                   e.stopPropagation(); 
-                   setOpenMenuId(null);
-                 }} 
-               />
-             )}
+          <div className="w-full text-left bg-white rounded-lg shadow-sm border p-4 sm:p-6 mt-4 md:mt-0 relative">
 
-             <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">Recent Platform Reactions</h3>
-             
-             {activities.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No recent activity to show.</p>
-             ) : (
-                <div className="relative space-y-2 md:space-y-0">
-                  {activities.map((activity) => (
-                    <div 
-                      key={activity._id} 
-                      onClick={async () => {
-                      await markAsRead(activity._id);
-                      navigate('/hub', { state: { highlightPostId: activity.postId } });
+            {openMenuId !== null && (
+              <div
+                className="fixed inset-0 z-40 bg-transparent cursor-default"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenuId(null);
+                }}
+              />
+            )}
+
+            <h3 className="text-lg font-bold text-gray-800 mb-6 border-b pb-2">Recent Platform Reactions</h3>
+
+            {groupedActivityList.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No recent activity to show.</p>
+            ) : (
+              <div className="relative space-y-2 md:space-y-0">
+                {groupedActivityList.map((group) => (
+                  <div
+                    key={group.key}
+                    onClick={async () => {
+                      await markGroupAsRead(group);
+                      navigate('/hub', { state: { highlightPostId: group.postId } });
                     }}
-                      className="relative md:pl-8 flex gap-2 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-center cursor-pointer group"
-                    >
-                      <div className="flex-shrink-0 mr-4">
-                        {activity.profilePic ? (
-                          <img src={activity.profilePic} alt={activity.user} className="w-10 h-10 rounded-full object-cover border border-gray-200" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm border border-gray-300">
-                            {activity.user === "A Website Visitor" ? "WV" : activity.user?.charAt(0).toUpperCase()}
+                    className="relative md:pl-8 flex gap-3 md:gap-4 hover:bg-gray-100 p-2 md:p-7 rounded transition justify-between items-center cursor-pointer"
+                  >
+                    {/* Avatars of users who reacted */}
+                    <div className="flex-shrink-0 flex items-center">
+                      {group.activities.slice(0, 3).map((activity, idx) => (
+                        <div
+                          key={activity._id}
+                          className="relative"
+                          style={{ marginLeft: idx > 0 ? '-35px' : '0', zIndex: - idx }}
+                        >
+                          {activity.profilePic ? (
+                            <img
+                              src={activity.profilePic}
+                              alt={activity.user}
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm border-2 border-white">
+                              {activity.user === "A Website Visitor" ? "WV" : activity.user?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Text */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-800 text-sm md:text-base leading-relaxed break-words">
+                        <span className="font-bold text-blue-900 mr-1">{buildLikerText(group)}</span>
+                        {group.latest.action}
+                      </p>
+                      <span className="text-xs text-gray-400 block mt-1">
+                        {new Date(group.latest.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Unread Blue dot + 3-dot menu */}
+                    <div className="flex items-center gap-3">
+                      {group.hasUnread && (
+                        <div className="h-3 w-3 rounded-full bg-blue-600 flex-shrink-0"></div>
+                      )}
+
+                      <div className="relative z-50">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === group.key ? null : group.key);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition focus:outline-none"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                          </svg>
+                        </button>
+
+                        {openMenuId === group.key && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
+                          >
+                            <button
+                              onClick={() => handleDeleteActivityGroup(group.allIds)}
+                              className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
+                            >
+                              {group.count > 1 ? `Delete These ${group.count} Logs` : 'Delete Log'}
+                            </button>
+                            <button
+                              onClick={() => handleClearAllActivities()}
+                              className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
+                            >
+                              Delete All Logs
+                            </button>
+                            <button
+                              onClick={() => setOpenMenuId(null)}
+                              className="w-full text-left px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-100 transition border-t"
+                            >
+                              Cancel
+                            </button>
                           </div>
                         )}
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-800 break-all overflow-hidden text-sm md:text-base leading-relaxed">
-                          <span className="font-bold text-blue-900 mr-1.5">{activity.user}</span> 
-                          {activity.action}
-                        </p>
-                        <span className="text-xs text-gray-400 block mt-1">
-                          {new Date(activity.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-
-                      {/* Right Hand Side: Dot + Menu */}
-                      <div className="flex items-center gap-3">
-                         {/* Unread Indicator */}
-                         {!activity.isRead && (
-                            <div className="h-3 w-3 rounded-full bg-blue-600 flex-shrink-0"></div>
-                         )}
-
-                         {/* 3-Dots Menu Container */}
-                         <div className="relative z-50">
-                           <button 
-                             onClick={(e) => {
-                               e.stopPropagation(); 
-                               setOpenMenuId(openMenuId === activity._id ? null : activity._id);
-                             }}
-                             className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition focus:outline-none"
-                           >
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                             </svg>
-                           </button>
-
-                           {openMenuId === activity._id && (
-                             <div 
-                               onClick={(e) => e.stopPropagation()} 
-                               className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden"
-                             >
-                               <button 
-                                 onClick={() => handleDeleteActivity(activity._id)}
-                                 className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
-                               >
-                                 Delete Log
-                               </button>
-                               <button 
-                                 onClick={() => handleClearAllActivities()}
-                                 className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-gray-100 transition text-red-600"
-                               >
-                                 Delete All Logs
-                               </button>
-                               <button 
-                                 onClick={() => setOpenMenuId(null)}
-                                 className="w-full text-left px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-100 transition border-t"
-                               >
-                                 Cancel
-                               </button>
-                             </div>
-                           )}
-                         </div>
-                      </div>
                     </div>
-                  ))}
-                </div>
-             )}
-           </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
-        {/* BOOKINGS VIEW (Unchanged) */}
+        {/* BOOKINGS VIEW */}
         {activeView === 'bookings' && (
           <>
             {!isLoading && !errorMessage && bookings.length === 0 && (
@@ -374,8 +580,8 @@ function AdminPage() {
             {!selectedUserKey && visibleMasterList.length > 0 && (
               <div className="grid gap-3 text-left w-full mt-4">
                 {visibleMasterList.map((group) => (
-                  <div 
-                    key={group.key} 
+                  <div
+                    key={group.key}
                     onClick={() => {
                       setSelectedUserKey(group.key);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -401,7 +607,7 @@ function AdminPage() {
                   </div>
                 ))}
                 {visibleCount < masterList.length && (
-                  <button 
+                  <button
                     onClick={loadMore}
                     className="mt-6 px-6 py-2 bg-[#f0b000] text-black font-bold rounded-full hover:bg-[#dba102] transition shadow-md w-full sm:w-max mx-auto"
                   >
@@ -440,14 +646,14 @@ function AdminPage() {
                     </div>
                     <div className="border-t pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                       <span className="font-bold text-gray-700 text-sm sm:text-base">Manage Status:</span>
-                      <select 
+                      <select
                         value={b.status || 'Pending'}
                         onChange={(e) => handleStatusChange(b._id, e.target.value)}
-                        disabled={b.status === 'Completed'} 
+                        disabled={b.status === 'Completed'}
                         className={`w-full sm:w-auto px-4 py-2 rounded-full text-sm font-bold cursor-pointer outline-none border transition-colors
-                          ${b.status === 'Pending' || !b.status ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 
-                            b.status === 'Completed' ? 'bg-green-100 text-green-800 border-green-300 opacity-70 cursor-not-allowed' : 
-                            b.status === 'Confirmed' ? 'bg-blue-100 text-blue-800 border-blue-300' : 
+                          ${b.status === 'Pending' || !b.status ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                            b.status === 'Completed' ? 'bg-green-100 text-green-800 border-green-300 opacity-70 cursor-not-allowed' :
+                            b.status === 'Confirmed' ? 'bg-blue-100 text-blue-800 border-blue-300' :
                             'bg-purple-100 text-purple-800'}`}
                       >
                         <option value="Pending" disabled>Pending</option>

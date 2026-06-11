@@ -51,7 +51,7 @@ function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // To close the left menu if clicked outside
+  // To close the desktop left menu if clicked outside
   useEffect(() => {
     const handleLeftMenuOutside = (e) => {
       if (leftMenuRef.current && !leftMenuRef.current.contains(e.target)) {
@@ -175,7 +175,7 @@ function Navbar() {
     // If no picture exists, use the avatar fallback
     return `https://ui-avatars.com/api/?name=${name || 'User'}&background=0D8ABC&color=fff&bold=true`;
   }
-  // If it's an external link (like Google auth), return it. Otherwise, add backend URL.
+  // If it's an external link, return it. Otherwise, add backend URL.
   return picUrl.startsWith("http") ? picUrl : `${BASE_URL}/${picUrl}`;
   };
 

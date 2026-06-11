@@ -17,6 +17,7 @@ const storage = new CloudinaryStorage({
     if (file.mimetype.startsWith("image/")) prefix = "Img";
     else if (file.mimetype.startsWith("video/")) prefix = "Vid";
 
+    // To generate a unique suffix using timestamp and random number to avoid filename collisions
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
     return {

@@ -17,7 +17,7 @@ const router = express.Router();
 
 /**
  * CUSTOM UPLOAD HANDLER
- * To catche Multer errors before they crash the app
+ * ENDPOINT to catch Multer errors before they crash the app
  */
 const handleUpload = (req, res, next) => {
   const uploadSingle = upload.single("file"); 
