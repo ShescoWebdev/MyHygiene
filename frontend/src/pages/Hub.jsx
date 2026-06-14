@@ -51,7 +51,7 @@ const Hub = () => {
   const scrollTimerRef = useRef(null);
   const clearTimerRef = useRef(null);
 
-  // To track if the detail modal was opened with a history.pushState (for back button handling)
+  // To handle cleanup of history entry when modal is opened from a post that gets deleted or edited
   const modalHistoryPushed = useRef(false);
 
   // To Fetch Posts & User Info on Mount
@@ -171,15 +171,23 @@ const Hub = () => {
 
   // Back Button Handling for Post Detail Modal
   useEffect(() => {
-    const handlePopState = () => {
-      if (selectedPost && modalHistoryPushed.current) {
+    const handlePopState = (event) => {
+      if (event.state?.hubModal && event.state?.postId) {
+        // Forward navigation
+        const post = posts.find(p => p._id === event.state.postId);
+        if (post) {
+          modalHistoryPushed.current = true;
+          setSelectedPost(post);
+        }
+      } else if (selectedPost && modalHistoryPushed.current) {
+        // Back navigation
         modalHistoryPushed.current = false;
         closePostModal();
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedPost]);
+  }, [selectedPost, posts]);
 
   // Long Press Logic for Bulk Selection on Mobile
   const handleTouchStart = (postId) => {
@@ -373,7 +381,6 @@ const Hub = () => {
       isComplete = true;
       setPosts((prev) => prev.filter((p) => p._id !== postId));
 
-      // If delete was triggered from inside the detail modal, close it and clean up its history entry
       if (selectedPost?._id === postId) {
         if (modalHistoryPushed.current) {
           modalHistoryPushed.current = false;
@@ -443,7 +450,7 @@ const Hub = () => {
         setSelectedPost({ ...selectedPost, likes: data.likes });
       }
 
-      // Activity log only fires on new likes, not unlikes
+      // Activity log only fires on new likes and not unlikes
       if (!hasAlreadyLiked) {
         let loggedInUser = "A Website Visitor";
         let userImage = null;
@@ -563,7 +570,6 @@ const Hub = () => {
     setShowCreateModal(true);
     setMenuOpenPostId(null);
     setModalMenuOpen(false);
-    // If edit is triggered from inside the detail modal, close it and clean up its history entry
     if (selectedPost) {
       if (modalHistoryPushed.current) {
         modalHistoryPushed.current = false;
@@ -735,7 +741,7 @@ const Hub = () => {
                               <button onClick={(e) => { e.stopPropagation(); setIsSelectionMode(true); setSelectedPostIds([post._id]); setMenuOpenPostId(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors rounded-xl">
                                 <CheckSquare size={16} /> Select
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); setIsSelectionMode(true); setSelectedPostIds(posts.map(p => p._id)); setMenuOpenPostId(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 border-b border-gray-100 pb-3 mb-1 transition-colors rounded-xl">
+                              <button onClick={(e) => { e.stopPropagation(); setIsSelectionMode(true); setSelectedPostIds(posts.map(p => p._id)); setMenuOpenPostId(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 border-b border-gray-200 pb-3 mb-1 transition-colors rounded-xl">
                                 <CheckSquare size={16} className="opacity-50" /> Select All
                               </button>
                               <button onClick={(e) => { e.stopPropagation(); handleEdit(post); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors rounded-xl">
@@ -808,7 +814,7 @@ const Hub = () => {
                         className="w-full h-full cursor-pointer object-cover object-top"
                         onClick={() => {
                           // To close detail modal and return to feed view
-                          window.history.pushState({ hubModal: true }, '');
+                          window.history.pushState({ hubModal: true, postId: post._id }, '');
                           modalHistoryPushed.current = true;
                           setSelectedPost(post);
                         }}
@@ -846,7 +852,7 @@ const Hub = () => {
                           }
                         }
                         // To close detail modal and return to feed view
-                        window.history.pushState({ hubModal: true }, '');
+                        window.history.pushState({ hubModal: true, postId: post._id }, '');
                         modalHistoryPushed.current = true;
                         setSelectedPost({ ...post, initialTime, isPlaying });
                       }}
@@ -932,6 +938,41 @@ const Hub = () => {
 
                       {modalMenuOpen && (
                         <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl shadow-2xl z-[100] py-2 overflow-hidden">
+                          {/* Select a post */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const postId = selectedPost._id;
+                              setModalMenuOpen(false);
+                              closePostModal();
+                              if (modalHistoryPushed.current) {
+                                modalHistoryPushed.current = false;
+                                window.history.back();
+                              }
+                              setIsSelectionMode(true);
+                              setSelectedPostIds([postId]);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors rounded-xl"
+                          >
+                            <CheckSquare size={16} /> Select
+                          </button>
+                          {/* Select All */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalMenuOpen(false);
+                              closePostModal();
+                              if (modalHistoryPushed.current) {
+                                modalHistoryPushed.current = false;
+                                window.history.back();
+                              }
+                              setIsSelectionMode(true);
+                              setSelectedPostIds(posts.map(p => p._id));
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 border-b border-gray-200 pb-3 mb-1 transition-colors rounded-xl"
+                          >
+                            <CheckSquare size={16} className="opacity-50" /> Select All
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
