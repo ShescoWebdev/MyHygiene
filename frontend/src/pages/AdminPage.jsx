@@ -80,39 +80,44 @@ function AdminPage() {
 
   
 
-  // Back button handling in booking detail view
+  // To handle browser Back/Forward navigation and maintain the correct view state
   useEffect(() => {
-    if (selectedUserKey) {
-      window.history.pushState({ adminSubView: 'bookingDetail' }, '');
-
-      const handlePopState = () => {
+    const applyHistoryState = (state) => {
+      if (state?.adminView === 'activityLog') {
+        setActiveView('activity');
         setSelectedUserKey(null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
-
-      window.addEventListener('popstate', handlePopState);
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, [selectedUserKey]);
-
-  // Back button handling in activity log view
-  useEffect(() => {
-    if (activeView === 'activity') {
-      window.history.pushState({ adminSubView: 'activityLog' }, '');
-
-      const handlePopState = () => {
+      } else if (state?.adminView === 'bookingDetail' && state.userKey) {
+        setSelectedUserKey(state.userKey);
         setActiveView('bookings');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
+      } else {
+        setActiveView('bookings');
+        setSelectedUserKey(null);
+      }
+    };
 
-      window.addEventListener('popstate', handlePopState);
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
+    const currentState = window.history.state;
+    if (currentState?.adminView) {
+      applyHistoryState(currentState);
+    } else {
+      // To give this page a well-defined base state so Back/Forward behaves predictably
+      window.history.replaceState({ adminView: 'bookings' }, '');
     }
-  }, [activeView]);
+
+    const handlePopState = (event) => {
+      applyHistoryState(event.state);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // To open the booking detail view for a specific user key and update the history state
+  const openBookingDetail = (key) => {
+    window.history.pushState({ adminView: 'bookingDetail', userKey: key }, '');
+    setSelectedUserKey(key);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleStatusChange = async (bookingId, newStatus) => {
     try {
@@ -226,6 +231,7 @@ function AdminPage() {
   };
 
   const handleViewActivities = () => {
+    window.history.pushState({ adminView: 'activityLog' }, '');
     setActiveView('activity');
     setSelectedUserKey(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -417,10 +423,7 @@ function AdminPage() {
 
             {activeView === 'activity' ? (
               <button
-                onClick={() => {
-                  setActiveView('bookings');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => window.history.back()}
                 className="text-sm font-bold text-[#f0b000] hover:text-[#dba102] underline whitespace-nowrap"
               >
                 &larr; Back to Bookings
@@ -433,10 +436,7 @@ function AdminPage() {
               </SafeNavLink>
             ) : (
               <button
-                onClick={() => {
-                  setSelectedUserKey(null);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => window.history.back()}
                 className="text-sm font-bold text-blue-400 hover:text-blue-300 underline whitespace-nowrap"
               >
                 &larr; Back to Inbox
@@ -582,10 +582,7 @@ function AdminPage() {
                 {visibleMasterList.map((group) => (
                   <div
                     key={group.key}
-                    onClick={() => {
-                      setSelectedUserKey(group.key);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
+                    onClick={() => openBookingDetail(group.key)}
                     className="border p-4 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition cursor-pointer bg-white w-full overflow-hidden"
                   >
                     <div className="flex flex-col gap-1 mb-2">
@@ -616,7 +613,7 @@ function AdminPage() {
                 )}
               </div>
             )}
-            {selectedUserKey && (
+            {selectedUserKey && groupedBookingsMap[selectedUserKey] && (
               <div className="grid gap-6 text-left w-full mt-4">
                 {groupedBookingsMap[selectedUserKey].map((b) => (
                   <div key={b._id} className="border p-4 sm:p-6 rounded-lg shadow-md bg-white w-full overflow-hidden">

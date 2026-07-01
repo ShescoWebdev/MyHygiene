@@ -124,7 +124,7 @@ function Footer() {
             <NavLink to="/about" className="text-gray-400 hover:text-yellow-400 transition">About Us</NavLink>
             <NavLink to="/services" className="text-gray-400 hover:text-yellow-400 transition">Services</NavLink>
             <NavLink to="/contact" className="text-gray-400 hover:text-yellow-400 transition">Contact Us</NavLink>
-            <NavLink to="/gallery" className="text-gray-400 hover:text-yellow-400 transition">Gallery</NavLink>
+            {/* <NavLink to="/gallery" className="text-gray-400 hover:text-yellow-400 transition">Gallery</NavLink> */}
             <NavLink to="/booking" className="text-gray-400 hover:text-yellow-400 transition">Book Now</NavLink>
           </div>
 

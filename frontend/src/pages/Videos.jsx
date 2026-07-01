@@ -3,7 +3,7 @@ import PageWrapper from "../components/PageWrapper"
 import Skeleton from "../components/Skeleton"
 import API, { BASE_URL } from "../api"
 
-// Moved outside component so it doesn't recreate on every render
+// Hardcoded videos as a fallback
 const hardcodedVideos = [
   "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993190/vid1_watb2r.mp4",
   "https://res.cloudinary.com/detg3ravj/video/upload/q_auto,w_1200/v1774993202/vid2_eaohxp.mp4",
@@ -185,9 +185,9 @@ function Videos() {
             See More Videos
           </button>
 
-          <div className='about3 text-black w-[20rem] m-auto md:w-[70rem] mt-10 p-10 bg-[#f4d171] rounded-3xl'>
+          <div className='about3 text-black w-[20rem] m-auto md:w-[65rem] mt-10 p-10 bg-[#f4d171] rounded-3xl'>
             <h1 className='text-center text-2xl md:text-4xl leading-relaxed text-blue-800 font-bold'>
-              Enjoy our video gallery
+              Explore our video gallery
             </h1>
           </div>
         </section>

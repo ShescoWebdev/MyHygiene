@@ -21,7 +21,7 @@ useEffect(() => {
     const promise = video.play()
     if (promise !== undefined) {
       promise.catch(() => {
-        // Try again after slight delay (mobile fix)
+        // Try again after slight delay (for mobile)
         setTimeout(() => {
           video.play().catch(() => {})
         }, 800)
@@ -29,7 +29,7 @@ useEffect(() => {
     }
   }
 
-  // Delay play slightly (important for mobile)
+  // Delay play slightly (for mobile)
   setTimeout(playVideo, 300)
 
 }, [])

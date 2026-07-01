@@ -1,4 +1,38 @@
 import Post from "../models/Post.js";
+import { cloudinary } from "../middleware/uploadMiddleware.js";
+
+// To extract the public_id from a Cloudinary URL for deletion
+const extractCloudinaryPublicId = (url) => {
+  if (!url || !url.includes("res.cloudinary.com")) return null;
+
+  const uploadIndex = url.indexOf("/upload/");
+  if (uploadIndex === -1) return null;
+
+  let pathAfterUpload = url.substring(uploadIndex + "/upload/".length);
+
+  // To strip an optional version segment, e.g. "v1234567890/"
+  pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, "");
+
+  // To strip the file extension, leaving the bare public_id
+  const lastDotIndex = pathAfterUpload.lastIndexOf(".");
+  return lastDotIndex !== -1 ? pathAfterUpload.substring(0, lastDotIndex) : pathAfterUpload;
+};
+
+// To remove a file from Cloudinary storage
+const deleteFromCloudinary = async (post) => {
+  if (!post?.url) return; // Text-only post, nothing was uploaded
+
+  const publicId = extractCloudinaryPublicId(post.url);
+  if (!publicId) return;
+
+  const resourceType = post.mediaType === "video" ? "video" : "image";
+
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  } catch (error) {
+    console.error(`Cloudinary deletion failed for ${publicId}:`, error);
+  }
+};
 
 // To create a post
 export const createPost = async (req, res) => {
@@ -119,6 +153,9 @@ export const updatePost = async (req, res) => {
       post.caption = req.body.caption;
     }
 
+    // To capture the outgoing file before it's overwritten, so the old Cloudinary asset can be cleaned up afterward
+    const previousFile = { url: post.url, mediaType: post.mediaType };
+
     // If a new file is uploaded, update the url and mediaType
     if (req.file) {
       post.url = req.file.path.replace(/\\/g, "/");
@@ -126,6 +163,11 @@ export const updatePost = async (req, res) => {
     }
 
     const updatedPost = await post.save();
+
+    // To remove the replaced file from Cloudinary now that the new one has taken its place, freeing up storage space
+    if (req.file && previousFile.url) {
+      await deleteFromCloudinary(previousFile);
+    }
 
     // To populate the updated post before sending it back
     await updatedPost.populate("uploadedBy", "name profilePic");
@@ -158,8 +200,8 @@ export const deletePost = async (req, res) => {
     // To delete the post from the database
     await post.deleteOne(); 
 
-    // To delete the image/video file from server 
-    // storage (e.g., using 'fs.unlinkSync'), I do that here before returning the response.
+    // To remove the associated photo/video from Cloudinary so it stops taking up storage space
+    await deleteFromCloudinary(post);
 
     res.status(200).json({ message: "Post deleted successfully!" });
 
@@ -178,8 +220,14 @@ export const deleteMultiplePosts = async (req, res) => {
       return res.status(400).json({ message: "No posts selected for deletion." });
     }
 
+    // To fetch the full post records first, since Cloudinary deletion needs each post's url and mediaType
+    const posts = await Post.find({ _id: { $in: postIds } });
+
     // To delete all IDs provided in the array
     await Post.deleteMany({ _id: { $in: postIds } });
+
+    // To remove each associated file from Cloudinary, freeing up storage space
+    await Promise.all(posts.map((post) => deleteFromCloudinary(post)));
 
     res.status(200).json({ message: "Selected posts deleted successfully!" });
   } catch (error) {

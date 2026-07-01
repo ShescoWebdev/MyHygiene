@@ -9,6 +9,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// To export cloudinary to make it shareable for other parts in the application
+export { cloudinary };
+
 // To handle file uploads to Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,

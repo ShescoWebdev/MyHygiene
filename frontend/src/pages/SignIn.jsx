@@ -34,7 +34,6 @@ export default function SignIn() {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
       const { data } = await API.post(endpoint, formData);
 
-      // Now extracting phone and address from backend response
       const userData = {
         _id: data._id,
         name: data.name,
@@ -159,8 +158,8 @@ export default function SignIn() {
               </button>
             </div>
 
-            {/* Forgotten Password Link
-            {isLogin && (
+            {/* Forgotten Password Link */}
+            {/* {isLogin && (
               <div className="text-right">
                 <button 
                   type="button"
