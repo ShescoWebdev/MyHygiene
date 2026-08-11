@@ -1121,3 +1121,1364 @@ const Hub = () => {
 };
 
 export default Hub;
+
+
+
+
+
+
+
+// import React, { useState, useEffect, useContext, useRef } from 'react';
+// import { Calendar, ChevronRight, ChevronLeft, Heart, UserCircle, Plus, X, Image as ImageIcon, Video, Type, 
+//   MoreVertical, Edit2, Trash2, CheckSquare, MoreHorizontal } from 'lucide-react';
+// import Swal from 'sweetalert2';
+// import PageWrapper from '../components/PageWrapper';
+// import API, { BASE_URL } from "../api";
+// import { AuthContext } from '../context/AuthContext';
+// import SafeNavLink from '../components/SafeNavLink';
+// import { useLocation, useNavigate } from 'react-router-dom';
+
+// const Hub = () => {
+//   const [posts, setPosts] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [currentUserId, setCurrentUserId] = useState(null);
+//   const [isAdmin, setIsAdmin] = useState(false);
+//   const { user } = useContext(AuthContext);
+
+//   // Modal & Menu States
+//   const [showCreateModal, setShowCreateModal] = useState(false);
+//   const [selectedPost, setSelectedPost] = useState(null);
+//   const [activeFileIndex, setActiveFileIndex] = useState(0);
+//   const [menuOpenPostId, setMenuOpenPostId] = useState(null);
+//   const [modalMenuOpen, setModalMenuOpen] = useState(false);
+
+//   // Bulk Selection States
+//   const [isSelectionMode, setIsSelectionMode] = useState(false);
+//   const [selectedPostIds, setSelectedPostIds] = useState([]);
+//   const pressTimer = useRef(null);
+
+//   // Form States
+//   const [isCreating, setIsCreating] = useState(false);
+//   const [isEditing, setIsEditing] = useState(false);
+//   const [editPostId, setEditPostId] = useState(null);
+//   const [caption, setCaption] = useState('');
+//   const [mediaType, setMediaType] = useState('photo');
+//   const [files, setFiles] = useState([]);
+//   const [existingFiles, setExistingFiles] = useState([]); // Existing files on the post being edited, individually removable
+
+//   // Video Syncing Refs
+//   const videoRefs = useRef({});
+//   const modalVideoRef = useRef(null);
+
+//   // Post (from Activity Log navigation)
+//   const location = useLocation();
+//   const navigate = useNavigate();
+//   const [highlightedPostId, setHighlightedPostId] = useState(null);
+//   const postCardRefs = useRef({});
+
+//   // 
+//   const pendingHighlightId = useRef(location.state?.highlightPostId || null);
+//   const highlightHandled = useRef(false);
+
+//   // 
+//   const scrollTimerRef = useRef(null);
+//   const clearTimerRef = useRef(null);
+
+//   // To handle cleanup of history entry when modal is opened from a post that gets deleted or edited
+//   const modalHistoryPushed = useRef(false);
+
+//   // To Fetch Posts & User Info on Mount
+//   useEffect(() => {
+//     const userStr = localStorage.getItem("user");
+//     if (userStr) {
+//       try {
+//         const userObj = JSON.parse(userStr);
+//         setCurrentUserId(userObj._id);
+//         if (userObj.role === 'admin' || userObj.isAdmin === true) {
+//           setIsAdmin(true);
+//         }
+//       } catch (e) {
+//         console.error("Failed to parse user from local storage");
+//       }
+//     }
+
+//     const fetchPosts = async () => {
+//       try {
+//         const { data } = await API.get("/posts");
+//         setPosts(data.posts || data);
+//       } catch (error) {
+//         console.error("Failed to fetch posts:", error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchPosts();
+//   }, []);
+
+//   // To prevent background scroll when Modal is open 
+//   useEffect(() => {
+//     if (selectedPost || showCreateModal) {
+//       document.body.style.overflow = 'hidden';
+//     } else {
+//       document.body.style.overflow = '';
+//     }
+//     return () => {
+//       document.body.style.overflow = '';
+//     };
+//   }, [selectedPost, showCreateModal]);
+
+//   // To sync video time when opening modal
+//   useEffect(() => {
+//     const activeFile = selectedPost?.files?.[activeFileIndex];
+//     if (activeFile?.mediaType === "video" && modalVideoRef.current) {
+//       modalVideoRef.current.currentTime = selectedPost.initialTime || 0;
+//       if (selectedPost.isPlaying) {
+//         modalVideoRef.current.play().catch(e => console.error("Playback failed:", e));
+//       }
+//     }
+//   }, [selectedPost, activeFileIndex]);
+
+//   // To sync video time when closing modal 
+//   const closePostModal = () => {
+//     const activeFile = selectedPost?.files?.[activeFileIndex];
+//     if (activeFile?.mediaType === "video" && modalVideoRef.current) {
+//       const feedVid = videoRefs.current[`${selectedPost._id}-${activeFileIndex}`];
+//       if (feedVid) {
+//         feedVid.currentTime = modalVideoRef.current.currentTime;
+//         if (!modalVideoRef.current.paused) {
+//           feedVid.play().catch(() => {});
+//         }
+//       }
+//     }
+//     setSelectedPost(null);
+//     setActiveFileIndex(0);
+//   };
+
+//   // To close menus on outside click
+//   useEffect(() => {
+//     const handleClickOutside = (e) => {
+//       if (!e.target.closest('.post-menu-container')) {
+//         setMenuOpenPostId(null);
+//       }
+//       if (!e.target.closest('.modal-menu-container')) {
+//         setModalMenuOpen(false);
+//       }
+//     };
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => {
+//       document.removeEventListener("mousedown", handleClickOutside);
+//     };
+//   }, []);
+
+//   // Highlight Logic for Activity Log Navigation
+//   useEffect(() => {
+//     if (pendingHighlightId.current) {
+//       navigate(location.pathname, { replace: true, state: null });
+//     }
+//   }, []);
+
+//   // To handle post highlighting and scrolling into view after posts are loaded
+//   useEffect(() => {
+//     if (highlightHandled.current || !pendingHighlightId.current || posts.length === 0) return;
+
+//     highlightHandled.current = true;
+//     const targetId = pendingHighlightId.current;
+
+//     setHighlightedPostId(targetId);
+
+//     scrollTimerRef.current = setTimeout(() => {
+//       postCardRefs.current[targetId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//     }, 350);
+
+//     clearTimerRef.current = setTimeout(() => {
+//       setHighlightedPostId(null);
+//     }, 3500);
+
+//   }, [posts]);
+
+//   //To cleanup timers on unmount
+//   useEffect(() => {
+//     return () => {
+//       clearTimeout(scrollTimerRef.current);
+//       clearTimeout(clearTimerRef.current);
+//     };
+//   }, []);
+
+//   // Back Button Handling for Post Detail Modal
+//   useEffect(() => {
+//     const handlePopState = (event) => {
+//       if (event.state?.hubModal && event.state?.postId) {
+//         // Forward navigation
+//         const post = posts.find(p => p._id === event.state.postId);
+//         if (post) {
+//           modalHistoryPushed.current = true;
+//           setActiveFileIndex(0);
+//           setSelectedPost(post);
+//         }
+//       } else if (selectedPost && modalHistoryPushed.current) {
+//         // Back navigation
+//         modalHistoryPushed.current = false;
+//         closePostModal();
+//       }
+//     };
+//     window.addEventListener('popstate', handlePopState);
+//     return () => window.removeEventListener('popstate', handlePopState);
+//   }, [selectedPost, posts]);
+
+//   // Long Press Logic for Bulk Selection on Mobile
+//   const handleTouchStart = (postId) => {
+//     if (!isAdmin || isSelectionMode) return;
+//     pressTimer.current = setTimeout(() => {
+//       setIsSelectionMode(true);
+//       setSelectedPostIds([postId]);
+//       setMenuOpenPostId(null);
+//     }, 600);
+//   };
+
+//   const handleTouchEnd = () => {
+//     if (pressTimer.current) {
+//       clearTimeout(pressTimer.current);
+//     }
+//   };
+
+//   const toggleSelection = (postId) => {
+//     setSelectedPostIds(prev =>
+//       prev.includes(postId)
+//         ? prev.filter(id => id !== postId)
+//         : [...prev, postId]
+//     );
+//   };
+
+//   const handleSelectAllCheckbox = (e) => {
+//     if (e.target.checked) {
+//       setSelectedPostIds(posts.map(p => p._id));
+//     } else {
+//       setSelectedPostIds([]);
+//     }
+//   };
+
+//   const cancelSelectionMode = () => {
+//     setIsSelectionMode(false);
+//     setSelectedPostIds([]);
+//   };
+
+//   // Bulk Delete
+//   const handleBulkDelete = async () => {
+//     if (selectedPostIds.length === 0) return;
+
+//     const { isConfirmed } = await Swal.fire({
+//       title: `Delete ${selectedPostIds.length} post${selectedPostIds.length > 1 ? 's' : ''}?`,
+//       text: "All selected posts will be permanently removed.",
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonColor: '#dc2626',
+//       cancelButtonColor: '#6b7280',
+//       confirmButtonText: 'Delete',
+//       cancelButtonText: 'Cancel',
+//     });
+
+//     if (!isConfirmed) return;
+
+//     const controller = new AbortController();
+//     let isComplete = false;
+
+//     Swal.fire({
+//       title: 'Deleting...',
+//       html: `Removing <b>${selectedPostIds.length}</b> post${selectedPostIds.length > 1 ? 's' : ''}...`,
+//       showConfirmButton: true,
+//       confirmButtonText: 'Deleting',
+//       confirmButtonColor: '#dc2626',
+//       showCancelButton: true,
+//       cancelButtonText: 'Cancel',
+//       cancelButtonColor: '#6b7280',
+//       allowOutsideClick: false,
+//       allowEscapeKey: false,
+//       didOpen: () => {
+//         Swal.showLoading();
+//         const confirmBtn = Swal.getConfirmButton();
+//         if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+//       },
+//     }).then(() => {
+//       if (!isComplete) controller.abort();
+//     });
+
+//     try {
+//       const token = localStorage.getItem("token");
+
+//       const results = await Promise.allSettled(
+//         selectedPostIds.map((id) =>
+//           API.delete(`/posts/${id}`, {
+//             headers: { Authorization: `Bearer ${token}` },
+//             signal: controller.signal,
+//           })
+//         )
+//       );
+
+//       isComplete = true;
+
+//       const succeededIds = selectedPostIds.filter((_, i) => results[i].status === 'fulfilled');
+//       const wasCancelled = controller.signal.aborted;
+
+//       if (succeededIds.length > 0) {
+//         setPosts((prev) => prev.filter((p) => !succeededIds.includes(p._id)));
+//       }
+
+//       if (wasCancelled) {
+//         if (succeededIds.length === 0) {
+//           Swal.fire({ 
+//             icon: 'info', 
+//             title: 'Cancelled', 
+//             text: 'No posts were removed.', 
+//             confirmButtonColor: '#f0b000', 
+//             timer: 2000, 
+//             showConfirmButton: false 
+//           });
+//         } else {
+//           cancelSelectionMode();
+//           Swal.fire({ 
+//             icon: 'warning', 
+//             title: 'Partially Deleted', 
+//             html: `<b>${succeededIds.length}</b> post${succeededIds.length > 1 ? 's were' : ' was'} already deleted before you cancelled.`, 
+//             confirmButtonColor: '#f0b000' 
+//           });
+//         }
+//       } else {
+//         cancelSelectionMode();
+//         Swal.fire({ 
+//           icon: 'success', 
+//           title: 'Deleted!', 
+//           text: `${succeededIds.length} post${succeededIds.length > 1 ? 's' : ''} removed.`, 
+//           confirmButtonColor: '#f0b000', 
+//           timer: 2000, 
+//           showConfirmButton: false 
+//         });
+//       }
+//     } catch (err) {
+//       isComplete = true;
+//       if (!controller.signal.aborted) {
+//         Swal.fire({ 
+//           icon: 'error', 
+//           title: 'Error', 
+//           text: 'Something went wrong. Please try again.', 
+//           confirmButtonColor: '#f0b000' 
+//         });
+//       }
+//     }
+//   };
+
+//   // Single Delete
+//   const handleDelete = async (postId) => {
+//     setMenuOpenPostId(null);
+//     setModalMenuOpen(false);
+
+//     const { isConfirmed } = await Swal.fire({
+//       title: 'Delete this post?',
+//       text: "This action cannot be undone.",
+//       icon: 'warning',
+//       showCancelButton: true,
+//       confirmButtonColor: '#dc2626',
+//       cancelButtonColor: '#6b7280',
+//       confirmButtonText: 'Delete',
+//       cancelButtonText: 'Cancel',
+//     });
+
+//     if (!isConfirmed) return;
+
+//     const controller = new AbortController();
+//     let isComplete = false;
+
+//     Swal.fire({
+//       title: 'Deleting...',
+//       text: 'Removing this post...',
+//       showConfirmButton: true,
+//       confirmButtonText: 'Deleting',
+//       confirmButtonColor: '#dc2626',
+//       showCancelButton: true,
+//       cancelButtonText: 'Cancel',
+//       cancelButtonColor: '#6b7280',
+//       allowOutsideClick: false,
+//       allowEscapeKey: false,
+//       didOpen: () => {
+//         Swal.showLoading();
+//         const confirmBtn = Swal.getConfirmButton();
+//         if (confirmBtn) confirmBtn.style.pointerEvents = 'none';
+//       },
+//     }).then(() => {
+//       if (!isComplete) controller.abort();
+//     });
+
+//     try {
+//       const token = localStorage.getItem("token");
+//       await API.delete(`/posts/${postId}`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//         signal: controller.signal,
+//       });
+
+//       isComplete = true;
+//       setPosts((prev) => prev.filter((p) => p._id !== postId));
+
+//       if (selectedPost?._id === postId) {
+//         if (modalHistoryPushed.current) {
+//           modalHistoryPushed.current = false;
+//           window.history.back();
+//         }
+//         setSelectedPost(null);
+//         setActiveFileIndex(0);
+//       }
+
+//       Swal.fire
+//       ({ 
+//         icon: 'success', 
+//         title: 'Deleted!', 
+//         text: 'Post has been removed.', 
+//         confirmButtonColor: '#f0b000', 
+//         timer: 2000, showConfirmButton: false 
+//       });
+//     } catch (err) {
+//       isComplete = true;
+//       if (controller.signal.aborted) {
+//         Swal.fire({ 
+//           icon: 'info', 
+//           title: 'Cancelled', 
+//           text: 'Deletion was cancelled.', 
+//           confirmButtonColor: '#f0b000', 
+//           timer: 2000, 
+//           showConfirmButton: false
+//          });
+//       } else {
+//         Swal.fire({ 
+//           icon: 'error', 
+//           title: 'Error', 
+//           text: 'Failed to delete. Please try again.', 
+//           confirmButtonColor: '#f0b000' 
+//         });
+//       }
+//     }
+//   };
+
+//   // Like / Unlike Post
+//   const handleLike = async (postId, postCaption = "this post") => {
+//     if (!currentUserId) {
+//       Swal.fire({ 
+//         icon: 'warning', 
+//         title: 'Authentication Required', 
+//         text: 'Please log in to like posts!', 
+//         confirmButtonColor: '#f0b000' 
+//       });
+//       return;
+//     }
+
+//     const targetPost = posts.find(p => p._id === postId);
+//     const hasAlreadyLiked = targetPost?.likes?.some(liker => (liker._id || liker) === currentUserId);
+
+//     try {
+//       const token = localStorage.getItem("token");
+//       const { data } = await API.put(`/posts/${postId}/like`, {}, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       });
+
+//       setPosts((prevPosts) =>
+//         prevPosts.map((p) =>
+//           p._id === postId ? { ...p, likes: data.likes } : p
+//         )
+//       );
+
+//       if (selectedPost && selectedPost._id === postId) {
+//         setSelectedPost({ ...selectedPost, likes: data.likes });
+//       }
+
+//       // Activity log only fires on new likes and not unlikes
+//       if (!hasAlreadyLiked) {
+//         let loggedInUser = "A Website Visitor";
+//         let userImage = null;
+
+//         try {
+//           const userStorageString = localStorage.getItem("user");
+//           if (userStorageString) {
+//             const userObject = JSON.parse(userStorageString);
+//             if (userObject) {
+//               if (userObject.name) loggedInUser = userObject.name;
+//               if (userObject.profilePic) userImage = userObject.profilePic;
+//             }
+//           }
+//         } catch (err) {
+//           console.error("Failed to parse local storage user:", err);
+//         }
+
+//         const safeText = String(postCaption || "this post");
+//         const snippet = safeText.length > 40 ? safeText.substring(0, 40) + "..." : safeText;
+
+//         await API.post("/activities", {
+//           user: loggedInUser,
+//           action: `liked your post: "${snippet}"`,
+//           profilePic: userImage,
+//           postId: postId
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error toggling love reaction:", error);
+//     }
+//   };
+
+//   // To handle new files being picked in the create/edit form
+//   const handleFileSelect = (e) => {
+//     const selected = Array.from(e.target.files || []);
+//     setFiles(selected);
+//   };
+
+//   // To remove a single file from the pending selection before publishing
+//   const removeSelectedFile = (index) => {
+//     setFiles((prev) => prev.filter((_, i) => i !== index));
+//   };
+
+//   // To remove a single existing file from the post during editing, without touching the others
+//   const removeExistingFile = (index) => {
+//     setExistingFiles((prev) => prev.filter((_, i) => i !== index));
+//   };
+
+//   // Create or Edit Post
+//   const handleCreatePost = async (e) => {
+//     e.preventDefault();
+
+//     // To account for files kept on an existing post when editing, so trimming all
+//     // media without adding new files or a caption is still correctly flagged as empty
+//     const remainingExistingCount = isEditing ? existingFiles.length : 0;
+
+//     if (!caption && files.length === 0 && remainingExistingCount === 0 && mediaType !== 'text') {
+//       Swal.fire({ 
+//         icon: 'info', 
+//         title: 'Missing Content', 
+//         text: 'Please add some content or a file before publishing.', 
+//         confirmButtonColor: '#f0b000' 
+//       });
+//       return;
+//     }
+
+//     const MAX_FILE_SIZE = 1073741824; // 1GB in bytes
+//     const MAX_FILE_COUNT = 10;
+
+//     if (files.length + remainingExistingCount > MAX_FILE_COUNT) {
+//       Swal.fire({ 
+//         icon: 'error', 
+//         title: 'Too Many Files', 
+//         text: `Please select a maximum of ${MAX_FILE_COUNT} photos/videos per post.`, 
+//         confirmButtonColor: '#79bab9' });
+//       return;
+//     }
+
+//     const oversizedFile = files.find((f) => f.size > MAX_FILE_SIZE);
+//     if (oversizedFile) {
+//       Swal.fire({ 
+//         icon: 'error', 
+//         title: 'File Too Large', 
+//         text: 'Please upload videos or photos smaller than 1GB each.', 
+//         confirmButtonColor: '#79bab9' });
+//       return;
+//     }
+
+//     setIsCreating(true);
+//     try {
+//       const token = localStorage.getItem("token");
+//       const formData = new FormData();
+//       formData.append("caption", caption);
+//       formData.append("mediaType", mediaType);
+//       files.forEach((f) => formData.append("files", f));
+
+//       if (isEditing) {
+//         // To tell the backend exactly which existing files survived tile-by-tile removal,
+//         // so it only deletes the ones actually taken out instead of wiping everything
+//         formData.append("existingFiles", JSON.stringify(existingFiles));
+
+//         const { data } = await API.put(`/posts/${editPostId}`, formData, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//         const updatedPost = data.post || data;
+//         setPosts(posts.map(p => p._id === editPostId ? updatedPost : p));
+//         if (selectedPost && selectedPost._id === editPostId) {
+//           setSelectedPost(updatedPost);
+//         }
+//         Swal.fire({ 
+//           icon: 'success', 
+//           title: 'Updated!', 
+//           text: 'Your post was updated.', 
+//           confirmButtonColor: '#f0b000', 
+//           timer: 2000, 
+//           showConfirmButton: false 
+//         });
+//       } else {
+//         const { data } = await API.post("/posts", formData, {
+//           headers: { Authorization: `Bearer ${token}` }
+//         });
+//         const newPost = data.post || data;
+//         setPosts([newPost, ...posts]);
+//         Swal.fire({ 
+//           icon: 'success', 
+//           title: 'Published!', 
+//           text: 'Your post has been successfully created.', 
+//           confirmButtonColor: '#f0b000', 
+//           timer: 2000, 
+//           showConfirmButton: false 
+//         });
+//       }
+
+//       closeCreateModal();
+//     } catch (error) {
+//       console.error("Error saving post:", error);
+//       Swal.fire({ 
+//         icon: 'error', 
+//         title: 'Action Failed', 
+//         text: 'Failed to process request. Please try again.', 
+//         confirmButtonColor: '#f0b000' 
+//       });
+//     } finally {
+//       setIsCreating(false);
+//     }
+//   };
+
+//   const handleEdit = (post) => {
+//     setIsEditing(true);
+//     setEditPostId(post._id);
+//     setCaption(post.caption || '');
+//     setMediaType(post.mediaType || 'photo');
+//     setExistingFiles(post.files || []); // To load the post's current files as individually removable tiles
+//     setFiles([]);
+//     setShowCreateModal(true);
+//     setMenuOpenPostId(null);
+//     setModalMenuOpen(false);
+//     if (selectedPost) {
+//       if (modalHistoryPushed.current) {
+//         modalHistoryPushed.current = false;
+//         window.history.back();
+//       }
+//       setSelectedPost(null);
+//       setActiveFileIndex(0);
+//     }
+//   };
+
+//   const closeCreateModal = () => {
+//     setShowCreateModal(false);
+//     setIsEditing(false);
+//     setEditPostId(null);
+//     setCaption('');
+//     setMediaType('photo');
+//     setFiles([]);
+//     setExistingFiles([]);
+//   };
+
+//   // Helpers
+//   const formatDateTime = (dateString) => {
+//     return new Date(dateString).toLocaleString('en-US', {
+//       year: 'numeric', month: 'short', day: 'numeric',
+//       hour: '2-digit', minute: '2-digit'
+//     });
+//   };
+
+//   const getHubProfilePic = (picUrl, name) => {
+//     if (!picUrl) {
+//       return `https://ui-avatars.com/api/?name=${name || 'User'}&background=0D8ABC&color=fff&bold=true`;
+//     }
+//     return picUrl.startsWith("http") ? picUrl : `${BASE_URL}/${picUrl}`;
+//   };
+
+//   // To open the detail modal at a specific file's index (used by both feed clicks and the +N overlay)
+//   const openPostModalAt = (post, idx, initialTime = 0, isPlaying = false) => {
+//     window.history.pushState({ hubModal: true, postId: post._id }, '');
+//     modalHistoryPushed.current = true;
+//     setActiveFileIndex(idx);
+//     setSelectedPost({ ...post, initialTime, isPlaying });
+//   };
+
+//   // To render the Facebook-style thumbnail grid for a post's attached files in the feed
+//   const renderFeedMedia = (post) => {
+//     const mediaFiles = post.files || [];
+//     if (mediaFiles.length === 0) return null;
+
+//     const renderTile = (fileEntry, idx, extraClass = '', overlayCount = 0) => {
+//       const key = `${post._id}-${idx}`;
+//       return (
+//         <div key={key} className={`relative overflow-hidden bg-black ${extraClass}`}>
+//           {fileEntry.mediaType === 'photo' ? (
+//             <img
+//               src={fileEntry.url}
+//               alt="Post media"
+//               className="w-full h-full object-cover object-top cursor-pointer"
+//               onClick={(e) => {
+//                 e.stopPropagation();
+//                 openPostModalAt(post, idx);
+//               }}
+//             />
+//           ) : (
+//             <video
+//               ref={(el) => (videoRefs.current[key] = el)}
+//               src={fileEntry.url}
+//               controls
+//               playsInline
+//               className="w-full h-full object-cover"
+//               onClick={(e) => e.stopPropagation()}
+//               onPointerDown={(e) => e.stopPropagation()}
+//               onPointerUp={(e) => e.stopPropagation()}
+//             />
+//           )}
+//           {overlayCount > 0 && (
+//             <div
+//               onClick={(e) => {
+//                 e.stopPropagation();
+//                 openPostModalAt(post, idx);
+//               }}
+//               className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer"
+//             >
+//               <span className="text-white text-2xl font-bold">+{overlayCount}</span>
+//             </div>
+//           )}
+//         </div>
+//       );
+//     };
+
+//     // Single file: full-width tile, same as the original single-upload behavior
+//     if (mediaFiles.length === 1) {
+//       return (
+//         <div className="h-56 w-full">
+//           {renderTile(mediaFiles[0], 0, 'w-full h-full')}
+//         </div>
+//       );
+//     }
+
+//     // Two files: even split, side by side
+//     if (mediaFiles.length === 2) {
+//       return (
+//         <div className="h-56 w-full grid grid-cols-2 gap-0.5">
+//           {renderTile(mediaFiles[0], 0, 'h-full')}
+//           {renderTile(mediaFiles[1], 1, 'h-full')}
+//         </div>
+//       );
+//     }
+
+//     // Three or more: one big tile on the left, two stacked on the right;
+//     // the last visible tile carries the +N overlay if there are more than 3 files total
+//     const remaining = mediaFiles.length - 3;
+//     return (
+//       <div className="h-56 w-full grid grid-cols-2 grid-rows-2 gap-0.5">
+//         <div className="row-span-2">
+//           {renderTile(mediaFiles[0], 0, 'w-full h-full')}
+//         </div>
+//         {renderTile(mediaFiles[1], 1, 'w-full h-full')}
+//         {renderTile(mediaFiles[2], 2, 'w-full h-full', remaining > 0 ? remaining : 0)}
+//       </div>
+//     );
+//   };
+
+//   return (
+//     <PageWrapper>
+//       <header className='fixed top-0 bg-black w-full h-20 text-white z-[100] flex items-center justify-between 
+//       px-6 md:px-20 border-b-4 border-red-500 shadow-lg'>
+//         <h1 className='text-2xl md:text-3xl font-bold'>Hub</h1>
+//         <SafeNavLink to="/">
+//           <button className="text-sm font-bold text-blue-400 hover:text-blue-300 underline whitespace-nowrap">
+//             &larr; Back to Homepage
+//           </button>
+//         </SafeNavLink>
+//       </header>
+
+//       <div className="bg-[#faf6e8] min-h-screen md:mt-[-25px] pt-28 pb-16 px-4 md:px-10 relative">
+
+//         {/* Bulk Selection Sticky Top Bar */}
+//         {isSelectionMode && isAdmin && (
+//           <div className="sticky top-0 left-0 right-0 bg-white shadow-xl z-[100] p-4 px-6 md:px-20 flex 
+//           justify-between items-center border-b-4 border-red-500 animate-slide-down">
+//             <div className="flex items-center gap-4">
+//               <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700 text-sm md:text-base">
+//                 <input
+//                   type="checkbox"
+//                   className="w-5 h-5 accent-red-600 cursor-pointer"
+//                   checked={selectedPostIds.length === posts.length && posts.length > 0}
+//                   onChange={handleSelectAllCheckbox}
+//                 />
+//                 Select All
+//               </label>
+//               <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs md:text-sm font-semibold border">
+//                 {selectedPostIds.length} Selected
+//               </span>
+//             </div>
+//             <div className="flex items-center gap-2 md:gap-4">
+//               <button
+//                 onClick={cancelSelectionMode}
+//                 className="px-3 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg text-sm md:text-base transition-colors"
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 onClick={handleBulkDelete}
+//                 disabled={selectedPostIds.length === 0}
+//                 className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg flex items-center gap-2
+//                  hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed text-sm md:text-base shadow-md transition-all"
+//               >
+//                 <Trash2 size={18} /> <span className="hidden md:inline">Delete Selected</span>
+//               </button>
+//             </div>
+//           </div>
+//         )}
+
+//         <div className="max-w-6xl mx-auto text-center mb-10">
+//           <h1 className="text-4xl md:text-5xl font-bold text-black mb-4">
+//             MyHygiene <span className="text-[#f0b000]">Hub</span>
+//           </h1>
+//           <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-6">
+//             Stay updated with the latest tips, news, and behind-the-scenes looks at our professional cleaning services.
+//           </p>
+//           {isAdmin && (
+//             <button
+//               onClick={() => setShowCreateModal(true)}
+//               className="inline-flex items-center gap-2 px-6 py-3 bg-[#f0b000] text-black font-semibold 
+//               rounded-full hover:bg-yellow-500 transition-colors shadow-md"
+//             >
+//               <Plus size={20} /> Create New Post
+//             </button>
+//           )}
+//         </div>
+
+//         {loading ? (
+//           <p className="text-center text-gray-500 animate-pulse">Loading posts...</p>
+//         ) : posts.length === 0 ? (
+//           <p className="text-center text-gray-500">No posts yet. Check back soon!</p>
+//         ) : (
+//           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+//             {posts.map((post) => {
+//               const isLiked = post.likes?.some(liker => (liker._id || liker) === currentUserId);
+//               const isSelected = selectedPostIds.includes(post._id);
+//               const hasMedia = post.files && post.files.length > 0;
+
+//               return (
+//                 <div
+//                   key={post._id}
+//                   ref={(el) => (postCardRefs.current[post._id] = el)}
+//                   onPointerDown={() => handleTouchStart(post._id)}
+//                   onPointerUp={handleTouchEnd}
+//                   onPointerLeave={handleTouchEnd}
+//                   onClick={() => {
+//                     if (isSelectionMode) toggleSelection(post._id);
+//                   }}
+//                   className={`bg-white rounded-2xl shadow-lg flex flex-col transition-all duration-700 border relative 
+//                     ${isSelectionMode ? 'cursor-pointer' : ''}
+//                     ${isSelected ? 'ring-4 ring-red-500 scale-[0.98]' : 'border-gray-100'}
+//                     ${isSelectionMode && !isSelected ? 'opacity-70 grayscale-[30%]' : ''}
+//                     ${highlightedPostId === post._id ?
+//                       'ring-2 ring-[#f0b000] bg-yellow-50 animate-pulse'
+//                       : ''}
+//                   `}
+//                 >
+
+//                   {/* Dark Overlay When Selected */}
+//                   {isSelected && (
+//                     <div className="absolute inset-0 bg-black/50 z-[15] pointer-events-none flex items-center justify-center transition-all">
+//                       <CheckSquare size={54} className="text-white opacity-90 drop-shadow-lg" />
+//                     </div>
+//                   )}
+
+//                   {/* INFO SECTION */}
+//                   <div className={`p-6 pb-4 flex flex-col relative z-20 ${isSelectionMode ? 'pointer-events-none' : ''}`}>
+
+//                     {/* Uploaded By & Options Menu */}
+//                     <div className="flex justify-between items-center mb-4 relative z-50">
+//                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+//                         {post.uploadedBy?.profilePic ? (
+//                           <img
+//                             src={getHubProfilePic(post.uploadedBy?.profilePic, post.uploadedBy?.name)}
+//                             alt="Profile"
+//                             className="w-8 h-8 text-[10px] rounded-full object-cover"
+//                           />
+//                         ) : (
+//                           <UserCircle size={24} className="text-[#f0b000]" />
+//                         )}
+//                         <span>{post.uploadedBy?.name || "Admin"}</span>
+//                       </div>
+
+//                       {isAdmin && !isSelectionMode && (
+//                         <div className="relative post-menu-container z-50">
+//                           <button
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               setMenuOpenPostId(menuOpenPostId === post._id ? null : post._id);
+//                             }}
+//                             className="p-1 hover:bg-gray-100 rounded-full transition-colors z-20"
+//                           >
+//                             <MoreHorizontal size={18} className="text-gray-500" />
+//                           </button>
+
+//                           {menuOpenPostId === post._id && (
+//                             <div className="absolute right-0 top-full mb-2 w-44 bg-white border border-gray-100 
+//                             rounded-xl shadow-2xl z-[100] py-2 overflow-hidden">
+
+//                               <button onClick={(e) => { e.stopPropagation(); setIsSelectionMode(true); setSelectedPostIds([post._id]);
+//                                  setMenuOpenPostId(null); }} 
+//                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium
+//                                   text-gray-700 hover:bg-gray-100 transition-colors rounded-xl">
+
+//                                 <CheckSquare size={16} /> Select
+//                               </button>
+//                               <button onClick={(e) => { e.stopPropagation(); setIsSelectionMode(true); 
+//                                 setSelectedPostIds(posts.map(p => p._id)); setMenuOpenPostId(null); }} 
+//                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700
+//                                  hover:bg-gray-100 border-b border-gray-200 pb-3 mb-1 transition-colors rounded-xl">
+//                                 <CheckSquare size={16} className="opacity-50" /> Select All
+//                               </button>
+//                               <button onClick={(e) => { e.stopPropagation(); handleEdit(post); }} 
+//                               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700
+//                                hover:bg-gray-100 transition-colors rounded-xl">
+//                                 <Edit2 size={16} /> Edit
+//                               </button>
+//                               <button onClick={(e) => { e.stopPropagation(); handleDelete(post._id); }} 
+//                               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600
+//                                hover:bg-red-50 transition-colors rounded-xl">
+//                                 <Trash2 size={16} /> Delete
+//                               </button>
+//                             </div>
+//                           )}
+//                         </div>
+//                       )}
+//                     </div>
+
+//                     {/* Created At & Like Action */}
+//                     <div className="flex justify-between items-center mb-4 z-40">
+//                       <div className="flex items-center text-gray-400 text-xs gap-2">
+//                         <Calendar size={14} />
+//                         <span>{formatDateTime(post.createdAt)}</span>
+//                       </div>
+
+//                       <div className="relative group flex items-center gap-1 z-40">
+//                         <button
+//                           onClick={(e) => {
+//                             e.stopPropagation();
+//                             handleLike(post._id, post.caption);
+//                           }}
+//                           className="focus:outline-none transform transition-transform hover:scale-110 active:scale-75 flex items-center"
+//                         >
+//                           <Heart
+//                             size={20}
+//                             color={isLiked ? "#f0b000" : "#9ca3af"}
+//                             fill={isLiked ? "#f0b000" : "transparent"}
+//                           />
+//                         </button>
+//                         <span className="text-gray-500 text-sm font-semibold">{post.likes?.length || 0}</span>
+
+//                         {/* Liker Tooltip */}
+//                         {post.likes && post.likes.length > 0 && typeof post.likes[0] === 'object' && (
+//                           <div className="absolute top-0 right-10 mb-2 hidden group-hover:block z-[100] w-48 bg-gray-900
+//                            text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
+//                             <div className="max-h-40 overflow-y-auto p-2 custom-scrollbar">
+//                               <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">Reactions</p>
+//                               {post.likes.map((liker) => (
+//                                 <div key={liker._id} className="flex items-center gap-2 mb-2 last:mb-0 px-1">
+//                                   <img src={getHubProfilePic(liker.profilePic, liker.name)} alt={liker.name} className="w-5 h-5 
+//                                   rounded-full object-cover border border-gray-600" />
+//                                   <span className="text-xs font-medium truncate">{liker.name}</span>
+//                                 </div>
+//                               ))}
+//                             </div>
+//                             <div className="absolute left-full top-2 right-3 border-[6px] border-transparent border-l-gray-900"></div>
+//                           </div>
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     {/* Caption */}
+//                     {post.caption && (
+//                       <p className={`text-gray-700 whitespace-pre-wrap ${hasMedia ? 'line-clamp-3' : 'line-clamp-[13]'} 
+//                       text-sm md:text-base`}>
+//                         {post.caption}
+//                       </p>
+//                     )}
+//                   </div>
+
+//                   {/* Media */}
+//                   {hasMedia && (
+//                     <div className="w-full overflow-hidden z-10 relative">
+//                       {renderFeedMedia(post)}
+//                     </div>
+//                   )}
+
+//                   {/* View Details Button */}
+//                   <div className={`p-6 pt-4 mt-auto z-20 ${isSelectionMode ? 'pointer-events-none' : ''}`}>
+//                     <button
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         let initialTime = 0;
+//                         let isPlaying = false;
+//                         const firstFile = post.files?.[0];
+//                         if (firstFile?.mediaType === 'video') {
+//                           const feedVid = videoRefs.current[`${post._id}-0`];
+//                           if (feedVid) {
+//                             initialTime = feedVid.currentTime;
+//                             isPlaying = !feedVid.paused;
+//                             feedVid.pause();
+//                           }
+//                         }
+//                         // To close detail modal and return to feed view
+//                         openPostModalAt(post, 0, initialTime, isPlaying);
+//                       }}
+//                       className="flex items-center justify-center gap-2 w-full py-3 bg-blue-500 text-white font-semibold 
+//                       rounded-xl hover:bg-blue-600 transition-colors"
+//                     >
+//                       View Details <ChevronRight size={18} />
+//                     </button>
+//                   </div>
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
+
+//         {/* Detail Modal */}
+//         {selectedPost && (
+//           <div className="fixed inset-0 bg-black/90 z-[100] flex justify-center items-center overflow-y-auto p-4 md:p-8">
+//             <div className="bg-white rounded-2xl w-full overflow-y-auto md:overflow-hidden relative 
+//             shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+
+//               <button
+//                 onClick={() => {
+//                   closePostModal();
+//                   if (modalHistoryPushed.current) {
+//                     modalHistoryPushed.current = false;
+//                     window.history.back();
+//                   }
+//                 }}
+//                 className="fixed hidden md:block top-7 right-1 md:right-16 md:top-14 z-[70] text-gray-500 border
+//                  border-gray-300 hover:text-black bg-white rounded-full p-1 shadow-md transition-colors"
+//               >
+//                 <X size={24} />
+//               </button>
+
+//               {/* Modal Media Side */}
+//               {selectedPost.files && selectedPost.files.length > 0 && (
+//                 <div className="w-full md:w-3/5 bg-black flex items-center justify-center order-2 md:order-1 relative">
+//                   {(() => {
+//                     const activeFile = selectedPost.files[activeFileIndex] || selectedPost.files[0];
+//                     return activeFile.mediaType === "photo" ? (
+//                       <img
+//                         src={activeFile.url}
+//                         alt="Full post media"
+//                         className="w-full max-h-[90vh] rounded-b-2xl md:rounded-b-none md:rounded-l-2xl object-contain"
+//                       />
+//                     ) : (
+//                       <video
+//                         ref={modalVideoRef}
+//                         src={activeFile.url}
+//                         controls
+//                         playsInline
+//                         className="w-full max-h-[90vh] cursor-pointer object-contain"
+//                       />
+//                     );
+//                   })()}
+
+//                   {/* Carousel Controls, shown only when a post carries more than one file */}
+//                   {selectedPost.files.length > 1 && (
+//                     <>
+//                       <button
+//                         onClick={() => setActiveFileIndex((prev) => (prev === 0 ? selectedPost.files.length - 1 : prev - 1))}
+//                         className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70
+//                          text-white rounded-full p-2 transition-colors"
+//                       >
+//                         <ChevronLeft size={22} />
+//                       </button>
+//                       <button
+//                         onClick={() => setActiveFileIndex((prev) => 
+//                           (prev === selectedPost.files.length - 1 ? 0 : prev + 1))}
+//                         className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70
+//                          text-white rounded-full p-2 transition-colors"
+//                       >
+//                         <ChevronRight size={22} />
+//                       </button>
+//                       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+//                         {selectedPost.files.map((_, idx) => (
+//                           <button
+//                             key={idx}
+//                             onClick={() => setActiveFileIndex(idx)}
+//                             className={`w-2 h-2 rounded-full transition-colors ${idx === activeFileIndex ? 'bg-white' : 'bg-white/40'}`}
+//                           />
+//                         ))}
+//                       </div>
+//                       <div className="absolute top-3 right-3 bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-full">
+//                         {activeFileIndex + 1} / {selectedPost.files.length}
+//                       </div>
+//                     </>
+//                   )}
+//                 </div>
+//               )}
+
+//               {/* Modal Info Side */}
+//               <div className={`w-full flex flex-col p-6 overflow-y-visible md:overflow-y-auto ${(!selectedPost.files || 
+//                 selectedPost.files.length === 0) ? 'md:w-full' : 'md:w-2/5'} order-1 md:order-2`}>
+
+//                 {/* Author / 3-dots menu inside modal */}
+//                 <div className="flex items-center justify-between md:justify-normal gap-3 mb-4">
+//                   <div className="flex items-center gap-3">
+//                     {selectedPost.uploadedBy?.profilePic ? (
+//                       <img
+//                         src={getHubProfilePic(selectedPost.uploadedBy?.profilePic, selectedPost.uploadedBy?.name)}
+//                         alt="Profile"
+//                         className="w-12 h-12 text-[11px] rounded-full object-cover"
+//                       />
+//                     ) : (
+//                       <UserCircle size={48} className="text-[#f0b000]" />
+//                     )}
+//                     <div>
+//                       <h3 className="font-bold text-gray-900">{selectedPost.uploadedBy?.name || "Admin"}</h3>
+//                     </div>
+//                   </div>
+
+//                   {/* 3-dots dropdown menu inside modal */}
+//                   {isAdmin && (
+//                     <div className="relative modal-menu-container flex-shrink-0">
+//                       <button
+//                         onClick={() => setModalMenuOpen(!modalMenuOpen)}
+//                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+//                       >
+//                         <MoreHorizontal size={18} className="text-gray-500" />
+//                       </button>
+
+//                       {modalMenuOpen && (
+//                         <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-100 rounded-xl 
+//                         shadow-2xl z-[100] py-2 overflow-hidden">
+//                           {/* Select a post */}
+//                           <button
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               const postId = selectedPost._id;
+//                               setModalMenuOpen(false);
+//                               closePostModal();
+//                               if (modalHistoryPushed.current) {
+//                                 modalHistoryPushed.current = false;
+//                                 window.history.back();
+//                               }
+//                               setIsSelectionMode(true);
+//                               setSelectedPostIds([postId]);
+//                             }}
+//                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700
+//                              hover:bg-gray-100 transition-colors rounded-xl"
+//                           >
+//                             <CheckSquare size={16} /> Select
+//                           </button>
+//                           {/* Select All */}
+//                           <button
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               setModalMenuOpen(false);
+//                               closePostModal();
+//                               if (modalHistoryPushed.current) {
+//                                 modalHistoryPushed.current = false;
+//                                 window.history.back();
+//                               }
+//                               setIsSelectionMode(true);
+//                               setSelectedPostIds(posts.map(p => p._id));
+//                             }}
+//                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700
+//                              hover:bg-gray-100 border-b border-gray-200 pb-3 mb-1 transition-colors rounded-xl"
+//                           >
+//                             <CheckSquare size={16} className="opacity-50" /> Select All
+//                           </button>
+//                           <button
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               handleEdit(selectedPost);
+//                             }}
+//                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium
+//                              text-gray-700 hover:bg-gray-100 transition-colors rounded-xl"
+//                           >
+//                             <Edit2 size={16} /> Edit
+//                           </button>
+//                           <button
+//                             onClick={(e) => {
+//                               e.stopPropagation();
+//                               handleDelete(selectedPost._id);
+//                             }}
+//                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold
+//                              text-red-600 hover:bg-red-50 transition-colors rounded-xl"
+//                           >
+//                             <Trash2 size={16} /> Delete
+//                           </button>
+//                         </div>
+//                       )}
+//                     </div>
+//                   )}
+//                 </div>
+
+//                 {/* Date & Like */}
+//                 <div className="flex items-center justify-between mb-4 pb-4 border-b relative z-30">
+//                   <p className="text-xs text-gray-500 font-medium">{formatDateTime(selectedPost.createdAt)}</p>
+
+//                   <div className="relative group flex items-center gap-1">
+//                     <button
+//                       onClick={() => handleLike(selectedPost._id, selectedPost.caption)}
+//                       className="focus:outline-none transform transition-transform active:scale-75"
+//                     >
+//                       <Heart
+//                         size={28}
+//                         color={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "#9ca3af"}
+//                         fill={selectedPost.likes?.some(liker => (liker._id || liker) === currentUserId) ? "#f0b000" : "transparent"}
+//                       />
+//                     </button>
+//                     <span className="text-gray-700 font-semibold text-base ml-1">{selectedPost.likes?.length || 0}</span>
+
+//                     {/* Modal Liker Tooltip */}
+//                     {selectedPost.likes && selectedPost.likes.length > 0 && typeof selectedPost.likes[0] === 'object' && (
+//                       <div className="absolute top-0 right-14 mb-2 hidden group-hover:block z-[80] 
+//                       w-52 bg-gray-900 text-white shadow-xl rounded-lg border border-gray-700 pointer-events-none">
+//                         <div className="max-h-48 overflow-y-auto p-2 custom-scrollbar">
+//                           <p className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">Reactions</p>
+//                           {selectedPost.likes.map((liker) => (
+//                             <div key={liker._id} className="flex items-center gap-2 mb-2 last:mb-0 px-1">
+//                               <img
+//                                 src={getHubProfilePic(liker.profilePic, liker.name)}
+//                                 alt={liker.name}
+//                                 className="w-6 h-6 rounded-full object-cover border border-gray-600"
+//                               />
+//                               <span className="text-xs font-medium truncate">{liker.name}</span>
+//                             </div>
+//                           ))}
+//                         </div>
+//                         <div className="absolute left-full top-2 right-3 border-[6px] border-transparent border-l-gray-900"></div>
+//                       </div>
+//                     )}
+//                   </div>
+//                 </div>
+
+//                 {/* Caption */}
+//                 <div className="flex-grow pb-6">
+//                   <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+//                     {selectedPost.caption}
+//                   </p>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Create/Edit Modal */}
+//         {showCreateModal && (
+//           <div className="fixed inset-0 bg-black/60 z-[100] flex justify-center items-center overflow-y-auto px-4">
+//             <div className="bg-white rounded-2xl max-w-lg w-full p-6 relative shadow-2xl">
+//               <button
+//                 onClick={closeCreateModal}
+//                 className="absolute top-4 right-4 text-gray-500 hover:text-black transition-colors"
+//               >
+//                 <X size={24} />
+//               </button>
+
+//               <h2 className="text-2xl font-bold mb-6 text-gray-800">
+//                 {isEditing ? 'Edit Post' : 'Create New Post'}
+//               </h2>
+
+//               <form onSubmit={handleCreatePost} className="flex flex-col gap-5">
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">Post Type</label>
+//                   <div className="flex gap-3">
+//                     <button 
+//                     type="button" 
+//                     onClick={() => setMediaType('photo')} 
+//                     className={`flex-1 py-2 px-3 rounded-lg border flex justify-center items-center gap-2 
+//                     transition-colors ${mediaType !== 'text' ? 'bg-[#f0b000] border-[#f0b000] text-black font-semibold' 
+//                     : 'bg-gray-50 text-gray-600'}`}>
+//                       <ImageIcon size={18} /> <Video size={18} /> Photos / Videos
+//                     </button>
+//                     <button 
+//                     type="button" 
+//                     onClick={() => { setMediaType('text'); 
+//                     setFiles([]); setExistingFiles([]); }} 
+//                     className={`flex-1 py-2 px-3 rounded-lg border flex justify-center items-center gap-2 
+//                     transition-colors ${mediaType === 'text' ? 'bg-[#f0b000] border-[#f0b000] text-black font-semibold' 
+//                     : 'bg-gray-50 text-gray-600'}`}>
+//                       <Type size={18} /> Text Only
+//                     </button>
+//                   </div>
+//                 </div>
+
+//                 {mediaType !== 'text' && (
+//                   <div>
+//                     <label className="block text-sm font-medium text-gray-700 mb-2">
+//                       Upload Photos / Videos (up to 10)
+//                       {isEditing && " (remove or add below)"}
+//                     </label>
+//                     <input
+//                       type="file"
+//                       multiple
+//                       accept="image/*,video/*"
+//                       onChange={handleFileSelect}
+//                       className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full 
+//                       file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700
+//                        hover:file:bg-yellow-100 border rounded-2xl cursor-pointer"
+//                     />
+
+//                     {/* Existing Files Preview, shown only when editing so each old file can be removed individually */}
+//                     {isEditing && existingFiles.length > 0 && (
+//                       <div className="flex flex-wrap gap-2 mt-3">
+//                         {existingFiles.map((f, idx) => (
+//                           <div key={f._id || f.url || idx} className="relative w-16 h-16 rounded-lg overflow-hidden border bg-gray-100 group">
+//                             {f.mediaType === 'video' ? (
+//                               <video src={f.url} muted playsInline className="w-full h-full object-cover" />
+//                             ) : (
+//                               <img src={f.url} alt="Existing post media" className="w-full h-full object-cover" />
+//                             )}
+//                             <button
+//                               type="button"
+//                               onClick={() => removeExistingFile(idx)}
+//                               className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+//                             >
+//                               <X size={12} />
+//                             </button>
+//                           </div>
+//                         ))}
+//                       </div>
+//                     )}
+
+//                     {/* Selected Files Preview */}
+//                     {files.length > 0 && (
+//                       <div className="flex flex-wrap gap-2 mt-3">
+//                         {files.map((f, idx) => (
+//                           <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border bg-gray-100 group">
+//                             {f.type.startsWith('video') ? (
+//                               <video src={URL.createObjectURL(f)} className="w-full h-full object-cover" />
+//                             ) : (
+//                               <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
+//                             )}
+//                             <button
+//                               type="button"
+//                               onClick={() => removeSelectedFile(idx)}
+//                               className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+//                             >
+//                               <X size={12} />
+//                             </button>
+//                           </div>
+//                         ))}
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+
+//                 <div>
+//                   <label className="block text-sm font-medium text-gray-700 mb-2">Caption</label>
+//                   <textarea
+//                     rows="4"
+//                     value={caption}
+//                     onChange={(e) => setCaption(e.target.value)}
+//                     placeholder="Write something engaging..."
+//                     className="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f0b000] resize-none whitespace-pre-wrap"
+//                   />
+//                 </div>
+
+//                 <button
+//                   type="submit"
+//                   disabled={isCreating}
+//                   className="w-full py-3 bg-[#f0b000] text-black font-bold rounded-xl hover:bg-yellow-500 transition-colors disabled:bg-yellow-200 disabled:cursor-not-allowed"
+//                 >
+//                   {isCreating ? 'Publishing...' : isEditing ? 'Update Post' : 'Publish Post'}
+//                 </button>
+//               </form>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     </PageWrapper>
+//   );
+// };
+
+// export default Hub;

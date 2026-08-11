@@ -10,7 +10,7 @@ const extractCloudinaryPublicId = (url) => {
 
   let pathAfterUpload = url.substring(uploadIndex + "/upload/".length);
 
-  // To strip an optional version segment, e.g. "v1234567890/"
+  // To strip an optional version segment
   pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, "");
 
   // To strip the file extension, leaving the bare public_id
@@ -18,14 +18,14 @@ const extractCloudinaryPublicId = (url) => {
   return lastDotIndex !== -1 ? pathAfterUpload.substring(0, lastDotIndex) : pathAfterUpload;
 };
 
-// To remove a file from Cloudinary storage
-const deleteFromCloudinary = async (post) => {
-  if (!post?.url) return; // Text-only post, nothing was uploaded
+// To remove a single file from Cloudinary storage
+const deleteFileFromCloudinary = async (fileEntry) => {
+  if (!fileEntry?.url) return;
 
-  const publicId = extractCloudinaryPublicId(post.url);
+  const publicId = extractCloudinaryPublicId(fileEntry.url);
   if (!publicId) return;
 
-  const resourceType = post.mediaType === "video" ? "video" : "image";
+  const resourceType = fileEntry.mediaType === "video" ? "video" : "image";
 
   try {
     await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
@@ -34,28 +34,55 @@ const deleteFromCloudinary = async (post) => {
   }
 };
 
+// To remove every file attached to a post from Cloudinary storage
+const deleteFromCloudinary = async (post) => {
+  if (!post?.files || post.files.length === 0) return; // Text-only post
+  await Promise.all(post.files.map((fileEntry) => deleteFileFromCloudinary(fileEntry)));
+};
+
+// To turn the raw multer files into the shape stored on the post
+const mapUploadedFiles = (uploadedFiles = []) => {
+  return uploadedFiles.map((file) => ({
+    url: file.path.replace(/\\/g, "/"),
+    mediaType: file.mimetype.includes("video") ? "video" : "photo",
+  }));
+};
+
+// To derive the overall post mediaType from its attached files
+const deriveMediaType = (files) => {
+  if (!files || files.length === 0) return "text";
+  return files.some((f) => f.mediaType === "video") ? "video" : "photo";
+};
+
+// To parse the existingFiles JSON string sent from the client during an edit
+const parseExistingFiles = (raw) => {
+  if (raw === undefined) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse existingFiles:", error);
+    return [];
+  }
+};
+
 // To create a post
 export const createPost = async (req, res) => {
   try {
     const captionText = req.body.caption || ""; 
-    
-    // To determine if there is a file attached
-    let fileUrl = "";
-    let fileType = "text";
 
-    if (req.file) {
-      fileUrl = req.file.path.replace(/\\/g, "/"); 
-      fileType = req.file.mimetype.includes("video") ? "video" : "photo";
-    }
+    // To handle both single and multiple file uploads
+    const incomingFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+    const mappedFiles = mapUploadedFiles(incomingFiles);
 
-    // To ensure a caption or a file is provided
-    if (!fileUrl && !captionText) {
+    // To ensure a caption or at least one file is provided
+    if (mappedFiles.length === 0 && !captionText) {
       return res.status(400).json({ message: "Please provide a photo, video, or caption." });
     }
 
     const newPost = await Post.create({
-      url: fileUrl,
-      mediaType: fileType,
+      files: mappedFiles,
+      mediaType: deriveMediaType(mappedFiles),
       caption: captionText,
       uploadedBy: req.user._id, 
     });
@@ -153,20 +180,39 @@ export const updatePost = async (req, res) => {
       post.caption = req.body.caption;
     }
 
-    // To capture the outgoing file before it's overwritten, so the old Cloudinary asset can be cleaned up afterward
-    const previousFile = { url: post.url, mediaType: post.mediaType };
+    // To handle file updates, additions and deletions
+    const previousFiles = post.files;
 
-    // If a new file is uploaded, update the url and mediaType
-    if (req.file) {
-      post.url = req.file.path.replace(/\\/g, "/");
-      post.mediaType = req.file.mimetype.includes("video") ? "video" : "photo";
+    const incomingFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+    const mappedNewFiles = mapUploadedFiles(incomingFiles);
+
+    // To know which files to keep, if the frontend sent that information
+    const existingFilesFromClient = parseExistingFiles(req.body.existingFiles);
+
+    let filesToDelete = [];
+    let finalFiles;
+
+    // To determine which files to keep, delete, or add
+    if (existingFilesFromClient !== null) {
+      const keptUrls = new Set(existingFilesFromClient.map((f) => f.url));
+      filesToDelete = previousFiles.filter((f) => !keptUrls.has(f.url));
+      const keptFiles = previousFiles.filter((f) => keptUrls.has(f.url));
+      finalFiles = [...keptFiles, ...mappedNewFiles];
+    } else if (incomingFiles.length > 0) {
+      filesToDelete = previousFiles;
+      finalFiles = mappedNewFiles;
+    } else {
+      finalFiles = previousFiles;
     }
+
+    post.files = finalFiles;
+    post.mediaType = deriveMediaType(finalFiles);
 
     const updatedPost = await post.save();
 
-    // To remove the replaced file from Cloudinary now that the new one has taken its place, freeing up storage space
-    if (req.file && previousFile.url) {
-      await deleteFromCloudinary(previousFile);
+    // To delete files from Cloudinary that are no longer associated with the post
+    if (filesToDelete.length > 0) {
+      await Promise.all(filesToDelete.map((fileEntry) => deleteFileFromCloudinary(fileEntry)));
     }
 
     // To populate the updated post before sending it back
@@ -220,7 +266,7 @@ export const deleteMultiplePosts = async (req, res) => {
       return res.status(400).json({ message: "No posts selected for deletion." });
     }
 
-    // To fetch the full post records first, since Cloudinary deletion needs each post's url and mediaType
+    // To fetch the full post records for the provided IDs to ensure they exist and to get their associated files
     const posts = await Post.find({ _id: { $in: postIds } });
 
     // To delete all IDs provided in the array

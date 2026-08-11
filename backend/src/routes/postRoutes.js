@@ -18,14 +18,19 @@ const router = express.Router();
 /**
  * CUSTOM UPLOAD HANDLER
  * ENDPOINT to catch Multer errors before they crash the app
+ * To upload multiple files for a post
  */
 const handleUpload = (req, res, next) => {
-  const uploadSingle = upload.single("file"); 
+  const uploadMultiple = upload.array("files", 10); // Up to 10 files per post
 
-  uploadSingle(req, res, function (err) {
+  uploadMultiple(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ error: "File is too large. Maximum size is 1GB." });
+        return res.status(400).json({ error: "File is too large. Maximum size is 1GB per file." });
+      }
+      // To catch the case where more than 10 files are sent
+      if (err.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({ error: "Too many files. Maximum is 10 per post." });
       }
       return res.status(400).json({ error: err.message });
     } else if (err) {

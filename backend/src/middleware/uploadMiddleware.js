@@ -12,7 +12,7 @@ cloudinary.config({
 // To export cloudinary to make it shareable for other parts in the application
 export { cloudinary };
 
-// To handle file uploads to Cloudinary
+// To set up Cloudinary storage for multer
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
@@ -25,15 +25,16 @@ const storage = new CloudinaryStorage({
 
     return {
       folder: "uploads",
-      resource_type: "auto",
+      resource_type: "auto", // To handle both images and videos automatically
       public_id: `${prefix}-${uniqueSuffix}`,
     };
   },
 });
 
+// To limit the file size to 1GB per individual file
 const upload = multer({
   storage,
-  limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB
+  limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB per individual file
 });
 
 export default upload;

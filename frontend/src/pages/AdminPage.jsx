@@ -80,7 +80,7 @@ function AdminPage() {
 
   
 
-  // To handle browser Back/Forward navigation and maintain the correct view state
+  // To handle browser back/forward navigation and maintain the correct view state
   useEffect(() => {
     const applyHistoryState = (state) => {
       if (state?.adminView === 'activityLog') {
@@ -99,7 +99,7 @@ function AdminPage() {
     if (currentState?.adminView) {
       applyHistoryState(currentState);
     } else {
-      // To give this page a well-defined base state so Back/Forward behaves predictably
+      // To give the page a well defined base state so back/forward behaves predictably
       window.history.replaceState({ adminView: 'bookings' }, '');
     }
 
@@ -194,7 +194,7 @@ function AdminPage() {
   // To show the red number count on the bell icon for unread notifications
   const unreadCount = groupedActivityList.filter(g => g.hasUnread).length;
 
-  // To build the text like "James and John liked your post" or "James, John, and 3 others liked your post"
+  // To build the text like ("Bob, Jane, and 3 others liked your post" for each activity group) 
   const buildLikerText = (group) => {
     const names = group.activities.map(a => a.user);
     if (names.length === 1) return names[0];

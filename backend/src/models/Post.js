@@ -1,10 +1,25 @@
 import mongoose from "mongoose";
 
-const postSchema = new mongoose.Schema(
+const fileSchema = new mongoose.Schema(
   {
     url: {
       type: String,
-      default: "",
+      required: true,
+    },
+    mediaType: {
+      type: String,
+      enum: ["photo", "video"],
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+const postSchema = new mongoose.Schema(
+  {
+    files: {
+      type: [fileSchema],
+      default: [],
     },
     mediaType: {
       type: String,
