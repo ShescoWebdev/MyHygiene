@@ -1,11 +1,37 @@
 import nodemailer from "nodemailer";
 import dns from "dns";
 
+// Prefer IPv4 globally for this process — Render's network can't reach Gmail's IPv6 hosts
+dns.setDefaultResultOrder("ipv4first");
+
+const SMTP_HOST = "smtp.gmail.com";
+const SMTP_IP_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let cachedSmtpIp = null;
+let cachedSmtpIpAt = 0;
+
+// Resolves smtp.gmail.com to a real IPv4 address so nodemailer never gets the chance to pick an unreachable IPv6 route
+const resolveSmtpIp = async () => {
+  const now = Date.now();
+  if (cachedSmtpIp && now - cachedSmtpIpAt < SMTP_IP_CACHE_TTL_MS) {
+    return cachedSmtpIp;
+  }
+  try {
+    const addresses = await dns.promises.resolve4(SMTP_HOST);
+    cachedSmtpIp = addresses[0];
+    cachedSmtpIpAt = now;
+    return cachedSmtpIp;
+  } catch (err) {
+    console.error("⚠️ IPv4 resolution for smtp.gmail.com failed, falling back to hostname:", err.message);
+    return SMTP_HOST; // fall back — the lookup override below still tries to force IPv4
+  }
+};
+
 const sendEmail = async (booking, isUpdate = false) => {
 
   // To configure nodemailer transporter for Gmail SMTP
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  const smtpHost = await resolveSmtpIp();
+  const transporter = nodemailer.createTransport({
+  host: smtpHost,
   port: 587,
   secure: false,
   lookup: (hostname, options, callback) => {
@@ -16,6 +42,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
   tls: {
+    servername: SMTP_HOST,
     rejectUnauthorized: false 
   }
 });
