@@ -21,7 +21,7 @@ export const sendWhatsApp = async (booking, isUpdate = false) => {
   let message = "";
 
   if (!isUpdate) {
-    // To send WhatsApp message to team for new bookings
+    // To send WhatsApp message to team for new bookings that require approval
     message = 
 `🧹 *Action Required: New Booking Received*
 
